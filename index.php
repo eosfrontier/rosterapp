@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Medicorum - work in progress</title>
+	<title>Roster - work in progress</title>
 	<meta name="robots" content="noindex, nofollow">
+        <meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/1.4.0/css/perfect-scrollbar.min.css">
 	<link rel="stylesheet" href="roster.css">
