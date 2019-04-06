@@ -1,0 +1,146 @@
+@font-face {
+    font-family: AquilaEthnocentric;
+    src: url('/font/AquilaEthnocentric.ttf') format('truetype');
+}
+
+.aquilafont {
+    font-family: AquilaEthnocentric;
+}
+
+html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body { 
+    font-family: sans-serif;
+    background-color: #2C3531;
+    position: absolute;
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#headerframe {
+    width: 100%;
+    border-bottom: 1px solid #116466;
+    background: linear-gradient(178deg, #116466, #111111);
+    margin-bottom: 5px;
+    box-shadow: 0 0 5px #111;
+}
+
+#header {    
+    width: 900px;
+    font-size: 250%;
+    font-weight: bold;
+    color: #D1E8E2;
+    margin: auto; 
+    text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
+}
+
+#footerframe {
+    flex: initial;
+    width: 100%;
+    border-top: 1px solid #116466;
+    margin-top: 10px;
+    background: linear-gradient(-1deg, #116466, #112122, #111111);
+    box-shadow: 0 0 5px #111;
+}
+
+#footer_logo{
+    float: right;
+    padding: 0 5px 0 15px;
+}
+
+#footer_tagline {
+    width: 900px;
+    margin: 10px auto;
+    font-size: 14px;
+    color: #D1E8E2;
+    text-align: right;
+}
+
+#footer_corp {
+    width: 900px;
+    margin: 10px auto;
+    color: #D1E8E2;
+    text-align: right;
+    font-size: 10px;
+}
+
+@keyframes spinlogo {
+    0% { transform: rotateY(90deg); }
+    100% { transform: rotateY(-90deg);}
+}
+
+#footer_logo {
+    padding: 0 20px;
+  perspective: 200px;
+    overflow: hidden;
+}
+
+#footer_logo img {
+    animation: spinlogo 3s linear infinite;
+}
+
+#main-body {
+    flex: auto;
+    position: relative;
+    width:900px;
+    color: #D9B08C;
+    background: #262626;
+    border: 2px solid #116466;
+    margin: auto;
+    padding: 0;
+    clear: both;
+    overflow: hidden; 
+    border-radius: 20px;
+    box-shadow: 0 0 5px #111;
+}
+
+.roster-list {
+}
+
+.roster-person {
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: 110px auto;
+  border: 1px solid #116466;
+  padding: 5px;
+  margin: 8px;
+  border-radius: 25px;
+  height: 120px;
+  box-shadow: 0px 0px 8px #10c6de;
+  min-width: 400px;
+  float: left;
+  background-color: #112244;
+}
+
+.roster-person > div {
+  color: #10c6de;
+  text-shadow: 0px 0px 1px #000;
+  text-shadow: 0px 0px 4px #10c6de;
+}
+
+.roster-person-character_image {
+  padding: 0px;
+  grid-row: 1/10;
+  grid-column: 1;
+  max-width: 100px;
+  max-height: 120px;
+}
+
+.roster-person-character_image img {
+  box-shadow: 0px 0px 3px #10c6ae;
+  border: 1px solid #106446;
+  border-radius: 20px;
+  margin: 0px;
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+}
