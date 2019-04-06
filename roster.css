@@ -107,56 +107,131 @@ body {
 }
 
 .roster-person {
-  display: grid;
-  grid-gap: 5px;
-  grid-template-columns: 110px auto;
-  border: 1px solid #116466;
-  padding: 5px;
-  margin: 8px;
-  border-radius: 25px;
-  height: 120px;
-  box-shadow: 0px 0px 8px #10c6de;
-  min-width: 400px;
-  float: left;
-  background-color: #112244;
+    display: grid;
+    grid-gap: 5px;
+    grid-template-columns: 110px auto;
+    border: 1px solid #116466;
+    padding: 5px;
+    margin: 8px;
+    border-radius: 25px;
+    height: 120px;
+    box-shadow: 0px 0px 8px #10c6de;
+    min-width: 400px;
+    float: left;
+    background-color: #112244;
 }
 
 .roster-person > div {
-  color: #10c6de;
-  text-shadow: 0px 0px 1px #000;
-  text-shadow: 0px 0px 4px #10c6de;
+    color: #10c6de;
+    text-shadow: 0px 0px 1px #000;
+    text-shadow: 0px 0px 4px #10c6de;
 }
 
 .roster-person-character_image {
-  padding: 0px;
-  grid-row: 1/10;
-  grid-column: 1;
-  max-width: 100px;
-  max-height: 120px;
+    padding: 0px;
+    grid-row: 1/10;
+    grid-column: 1;
+    max-width: 100px;
+    max-height: 120px;
 }
 
 .roster-person-character_image img {
-  box-shadow: 0px 0px 3px #10c6ae;
-  border: 1px solid #106446;
-  border-radius: 20px;
-  margin: 0px;
-  display: block;
-  max-height: 100%;
-  max-width: 100%;
+    box-shadow: 0px 0px 3px #10c6ae;
+    border: 1px solid #106446;
+    border-radius: 20px;
+    margin: 0px;
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
 }
 
 .roster-person-character_image .image-add-new {
-  box-shadow: 0px 0px 3px #10c6ae;
-  border: 1px solid #106446;
-  border-radius: 20px;
-  margin: 0px;
-  display: block;
-  height: 80px;
-  width: 80px;
-  padding: 10px;
-  font-size: 50px;
-  background: radial-gradient(#102420, #154860);
-  color: #10a68e;
-  text-shadow: 0 0 1px #000000, 0 0 10px #40c686, 0 0 20px #10fc80;
-  text-align: center;
+    cursor: pointer;
+    box-shadow: 0px 0px 3px #10c6ae;
+    border: 1px solid #106446;
+    border-radius: 20px;
+    margin: 0px;
+    display: block;
+    height: 80px;
+    width: 80px;
+    padding: 10px;
+    font-size: 50px;
+    background: radial-gradient(#102420, #154860);
+    color: #10a68e;
+    text-shadow: 0 0 1px #000000, 0 0 10px #40c686, 0 0 20px #10fc80;
+    text-align: center;
+}
+
+#add-person-popup {
+    display: none;
+    flex: auto;
+    position: absolute;
+    width:500px;
+    top: 40px;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    color: #D9B08C;
+    background: rgba(40,40,40,0.9);
+    border: 2px solid #116466;
+    margin: auto;
+    padding: 0;
+    overflow: hidden; 
+    border-radius: 20px;
+    box-shadow: 0 0 5px #111;
+}
+
+#add-person-popup.visible {
+    display: block;
+}
+
+#add-person-popup .popup-header {
+    font-size: 20px;
+    padding: 5px 0 5px 20px;
+    border-bottom: 1px solid #116466;
+    background: linear-gradient(178deg, #116466, #111111);
+}
+
+#search-person-list {
+    position: absolute;
+    top: 30px;
+    bottom: 0px;
+    overflow-y: auto;
+    margin: 2px 0px 4px 10px;
+}
+
+.search-person {
+    display: grid;
+    grid-gap: 5px;
+    grid-template-columns: 50px auto;
+    border: 0px solid #116466;
+    padding: 4px;
+    margin: 3px;
+    border-radius: 15px;
+    height: 60px;
+    box-shadow: 0px 0px 4px #10c6de;
+    min-width: 400px;
+    float: left;
+    background-color: #112244;
+}
+
+.search-person-character_image {
+}
+
+.search-person-character_image {
+    padding: 0px;
+    grid-row: 1/10;
+    grid-column: 1;
+    max-width: 50px;
+    max-height: 60px;
+}
+
+.search-person-character_image img {
+    box-shadow: 0px 0px 3px #10c6ae;
+    border: 1px solid #106446;
+    border-radius: 10px;
+    margin: 0px;
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
 }

@@ -1,6 +1,7 @@
 $(load)
 
-var person_fields = ['character_image','character_name','pilot_skill','pilot_interest']
+var roster_type = 'pilot';
+var person_fields = ['character_image','character_name','faction','rank','pilot_skill','pilot_interest']
 var skill_fields = ['pilot_skill','pilot_interest']
 var special_fields = { character_image:'<img src="?">' }
 var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
@@ -8,7 +9,9 @@ var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
 function load()
 {
     $.get('api/get_roster.php', { fields: skill_fields.join(','), extrafields: 'status' }, fill_roster, 'json')
+    $.get('api/get_people.php', { }, fill_searchlist)
     $('#roster-list').on('click','div.roster-person.add-new',add_new_person)
+    $('span.roster-type').text(roster_type)
 }
 
 function htmlize(text)
@@ -54,4 +57,12 @@ function fill_roster(roster)
     $('#roster-list').html(html.join(''))
 }
 
-fuction
+function fill_searchlist(people)
+{
+    $('#search-person-list').html(people)
+}
+
+function add_new_person()
+{
+    $('#add-person-popup').addClass('visible')
+}

@@ -14,11 +14,16 @@
 <body>
 
 <div id="headerframe">
-    <div id="header" class="aquilafont">Pilot Roster</div>
+    <div id="header" class="aquilafont"><span class="roster-type">person</span> roster</div>
 </div>
 <div id="main-body">
     <div id="roster-list">
-        Loading
+        <h3 class="loading">Loading</h3>
+    </div>
+</div>
+<div id="add-person-popup">
+    <div class="popup-header">Select a new <span class="roster-type">person</span></div>
+    <div class="popup-person-list" id="search-person-list">
     </div>
 </div>
 <div id="footerframe">

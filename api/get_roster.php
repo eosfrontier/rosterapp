@@ -15,7 +15,7 @@ if ($conn->connect_error) {
 
 $conn->set_charset("utf8");
 
-$qryselect = "select c.characterID, c.character_name, concat('https://www.eosfrontier.space/eos_douane/images/mugs/',c.characterID,'.jpg') as character_image";
+$qryselect = "select c.characterID, c.character_name, concat('https://www.eosfrontier.space/eos_douane/images/mugs/',c.characterID,'.jpg') as character_image, faction, rank";
 $fieldlist = "";
 
 $fields = "";
@@ -46,6 +46,7 @@ $qryselect  .= "
 from ecc_characters c
 where not exists (select 1 from med_fieldtypes ft join med_fieldvalues fv on ft.fieldtypeID = fv.fieldvalueID
         where ft.fieldname='exclude' and fv.characterID = c.characterID)
+and c.character_name is not null
 having 1=1";
 foreach (explode(",", "${fields}") as $field) {
     $field = trim($field);
@@ -53,18 +54,21 @@ foreach (explode(",", "${fields}") as $field) {
         $qryselect .= " and `${field}` is not null";
     }
 }
+$qryselect .= " order by character_name";
 
-$fieldlist = rtrim($fieldlist,",");
-$result = $conn->query("select fieldname, fieldlabel, fielddescription from med_fieldtypes where fieldname in (${fieldlist})");
 $fieldnames = "";
-if ($result) {
-    $comma = "";
-    while ($row = $result->fetch_assoc()) {
-        $fieldnames .= $comma.json_encode($row);
-        $comma = ",\n";
+if ($fieldlist) {
+    $fieldlist = rtrim($fieldlist,",");
+    $result = $conn->query("select fieldname, fieldlabel, fielddescription from med_fieldtypes where fieldname in (${fieldlist})");
+    if ($result) {
+        $comma = "";
+        while ($row = $result->fetch_assoc()) {
+            $fieldnames .= $comma.json_encode($row);
+            $comma = ",\n";
+        }
+    } else {
+        die("SQL failure".$conn->error);
     }
-} else {
-    die("SQL failure".$conn->error);
 }
 
 // Get all the character names, including ICC number
@@ -79,7 +83,7 @@ if ($result) {
         echo $comma.json_encode($row);
         $comma = ",\n";
     }
-    echo ']}';
+    echo "]}";
 } else {
     echo "SQL: ${qryselect}";
     die("SQL failure".$conn->error);
