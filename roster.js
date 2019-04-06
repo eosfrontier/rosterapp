@@ -6,7 +6,7 @@ var specialfields = { character_image:'<img src="?">' }
 
 function load()
 {
-    $.get('getroster.php', { fields: skillfields.join(','), extrafields: 'status' }, fillroster, 'json')
+    $.get('api/getroster.php', { fields: skillfields.join(','), extrafields: 'status' }, fillroster, 'json')
 }
 
 function htmlize(text)
