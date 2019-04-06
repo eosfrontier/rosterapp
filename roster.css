@@ -80,7 +80,7 @@ body {
 
 #footer_logo {
     padding: 0 20px;
-  perspective: 200px;
+    perspective: 200px;
     overflow: hidden;
 }
 
@@ -103,7 +103,11 @@ body {
     box-shadow: 0 0 5px #111;
 }
 
-.roster-list {
+
+#roster-list {
+    position: absolute;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .roster-person {
@@ -162,6 +166,30 @@ body {
     text-align: center;
 }
 
+.roster-person input {
+    width: 100%;
+    background-color: #000;
+    border: 2px solid #154860;
+    border-radius: 6px;
+    color: #10c6de;
+    font-family: sans-serif;
+    font-size: 1em;
+    padding: 0px;
+    margin: 0px;
+    box-shadow: 0 0 2px #10c6de;
+    padding-left: 5px;
+    transition: all 400ms ease-out;
+    transform: translateX(-7px);
+}
+
+.roster-person input:hover {
+    box-shadow: 0 0 2px #10f6ff, 0 0 4px #10f6ff;
+}
+.roster-person input:focus {
+    border-color: #10c6de;
+    box-shadow: 0 0 3px #10f6ff;
+}
+
 #add-person-popup {
     display: none;
     flex: auto;
@@ -192,12 +220,16 @@ body {
     background: linear-gradient(178deg, #116466, #111111);
 }
 
-#search-person-list {
+.popup-person-list {
     position: absolute;
     top: 30px;
     bottom: 0px;
     overflow-y: auto;
-    margin: 2px 0px 4px 10px;
+    margin: 0;
+}
+
+#search-person-list {
+    margin: 10px 2px 5px 5px;
 }
 
 .search-person {
@@ -208,14 +240,29 @@ body {
     padding: 4px;
     margin: 3px;
     border-radius: 15px;
-    height: 60px;
+    height: 20px;
     box-shadow: 0px 0px 4px #10c6de;
     min-width: 400px;
     float: left;
     background-color: #112244;
+    cursor: pointer;
+}
+
+#search-person-list.few-items .search-person {
+    height: 60px;
 }
 
 .search-person-character_image {
+}
+
+#search-person-list.few-items .search-person-faction,
+#search-person-list.few-items .search-person-rank {
+    display: block;
+}
+
+.search-person-faction,
+.search-person-rank {
+    display: none;
 }
 
 .search-person-character_image {
