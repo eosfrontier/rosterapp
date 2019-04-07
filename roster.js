@@ -11,7 +11,7 @@ var search_value = ''
 
 function load()
 {
-    $.get('api/get_roster.php', { fields: skill_fields.join(','), extrafields: extra_fields.join(',') }, fill_roster, 'json')
+    $.get('api/get_roster.php', { roster_type: 'pilot' }, fill_roster, 'json')
     $.get('api/get_people.php', { }, fill_searchlist)
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
@@ -125,7 +125,7 @@ function add_new_person()
             faction: $(this).find('.search-person-faction').text(),
             rank: $(this).find('.search-person-rank').text()
             }, true)).insertBefore('#roster-list .roster-person.add-new')
-        $.get('api/get_roster.php', { fields: skill_fields.join(','), extrafields: extra_fields.join(','), characterID: characterID }, show_new_person, 'json')
+        $.get('api/get_roster.php', { roster_type: 'pilot', characterID: characterID }, show_new_person, 'json')
     }
 }
 

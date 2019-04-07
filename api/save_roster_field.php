@@ -20,7 +20,7 @@ $fieldname = $conn->real_escape_string($_POST["fieldname"]);
 $oldvalue = $conn->real_escape_string($_POST["oldvalue"]);
 $newvalue = $conn->real_escape_string($_POST["newvalue"]);
 
-$result = $conn->query("SELECT fieldtypeID FROM med_fieldtypes WHERE fieldname='${fieldname}'");
+$result = $conn->query("SELECT fieldtypeID FROM ros_fieldtypes WHERE fieldname='${fieldname}'");
 if (!$result) {
     die("SQL failure: ".$conn->error);
 }
@@ -28,11 +28,11 @@ $fieldtypeID = $result->fetch_object()->fieldtypeID;
 
 // De rare subselect is om een lege string als default waarde terug te geven als er geen rijtjes zijn
 $qryinsert = "
-INSERT INTO med_fieldvalues (fieldtypeID, characterID, fieldvalue)
+INSERT INTO ros_fieldvalues (fieldtypeID, characterID, fieldvalue)
 SELECT ${fieldtypeID} as fieldtypeID, ${characterID} as characterID, '${newvalue}' as fieldvalue
 FROM DUAL
 WHERE '${oldvalue}' = (SELECT fv.fieldvalue FROM (
-        SELECT fv1.fieldvalue, fv1.mod_timestamp FROM med_fieldvalues fv1
+        SELECT fv1.fieldvalue, fv1.mod_timestamp FROM ros_fieldvalues fv1
         WHERE close_timestamp IS NULL
         AND fv1.characterID = ${characterID}
         AND fv1.fieldtypeID = ${fieldtypeID}
@@ -57,8 +57,8 @@ if ($conn->affected_rows == 1) {
 } else {
     $result = $conn->query("
     SELECT fv.fieldvalue
-    FROM med_fieldtypes ft
-    JOIN med_fieldvalues fv ON (ft.fieldtypeID = fv.fieldtypeID)
+    FROM ros_fieldtypes ft
+    JOIN ros_fieldvalues fv ON (ft.fieldtypeID = fv.fieldtypeID)
     WHERE ft.fieldname='${fieldname}'
     AND fv.characterID=${characterID}
     AND close_timestamp IS NULL

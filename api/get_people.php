@@ -20,7 +20,7 @@ $conn->set_charset("utf8");
 $result = $conn->query("
 SELECT c.characterID, c.character_name, faction, rank
 FROM ecc_characters c
-WHERE NOT EXISTS (SELECT 1 FROM med_fieldtypes ft JOIN med_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
+WHERE NOT EXISTS (SELECT 1 FROM ros_fieldtypes ft JOIN ros_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
         WHERE ft.fieldname='exclude' AND fv.characterID = c.characterID)
 AND c.character_name IS NOT NULL
 ORDER BY character_name
