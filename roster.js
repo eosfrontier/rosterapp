@@ -77,6 +77,7 @@ function fill_searchlist(people)
 function search_new_person()
 {
     $('#search-person-list .search-person').addClass('selected')
+    $('#search-person-list').removeClass('few-items')
     $('#search-input').val('')
     $('#roster-list .roster-person').each(function() {
         var characterID = $(this).attr('data-character-id')
@@ -116,10 +117,22 @@ function input_searchlist()
     var searchkey = $('#search-input').val().toLowerCase()
     if (searchkey.indexOf(search_value) < 0) {
         $('#search-person-list .search-person').addClass('selected')
+        $('#search-person-list').removeClass('few-items')
     }
     search_value = searchkey
     if (searchkey) {
         $('#search-person-list .search-person.selected').not("[data-search-key*='"+searchkey+"']").removeClass('selected')
+        var selected_entries = $('#search-person-list .search-person.selected')
+        if (selected_entries.length < 5) {
+            $('#search-person-list').addClass('few-items')
+            selected_entries.not(':has(.search-person-character_image img)').each(function() {
+                console.log(this)
+                var characterID = $(this).attr('data-character-id')
+                if (characterID) {
+                    $(this).find('.search-person-character_image').html('<img src="https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg">')
+                }
+            })
+        }
     }
 }
 

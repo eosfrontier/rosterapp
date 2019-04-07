@@ -258,17 +258,20 @@ body {
     height: 60px;
 }
 
-.search-person-character_image {
+.search-person-character_image img,
+.search-person-faction,
+.search-person-rank {
+    display: none;
 }
 
+#search-person-list.few-items .search-person-character_image img,
 #search-person-list.few-items .search-person-faction,
 #search-person-list.few-items .search-person-rank {
     display: block;
 }
 
-.search-person-faction,
-.search-person-rank {
-    display: none;
+#search-person-list.few-items .search-person {
+    height: 70px;
 }
 
 .search-person-character_image {
@@ -284,7 +287,6 @@ body {
     border: 1px solid #106446;
     border-radius: 10px;
     margin: 0px;
-    display: block;
     max-height: 100%;
     max-width: 100%;
 }
