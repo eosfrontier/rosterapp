@@ -18,16 +18,15 @@ $conn->set_charset("utf8");
 
 // Get all the character names, including ICC number
 $result = $conn->query("
-select c.characterID, c.character_name, faction, rank
-from ecc_characters c
-where not exists (select 1 from med_fieldtypes ft join med_fieldvalues fv on ft.fieldtypeID = fv.fieldvalueID
-        where ft.fieldname='exclude' and fv.characterID = c.characterID)
-and c.character_name is not null
-order by character_name
+SELECT c.characterID, c.character_name, faction, rank
+FROM ecc_characters c
+WHERE NOT EXISTS (SELECT 1 FROM med_fieldtypes ft JOIN med_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
+        WHERE ft.fieldname='exclude' AND fv.characterID = c.characterID)
+AND c.character_name IS NOT NULL
+ORDER BY character_name
 ");
 
 if ($result) {
-    // Build json by hand because it didn't work in one go for some reason
     header('Content-Type: text/html');
     while ($row = $result->fetch_assoc()) {
         echo '<div class="selected search-person search-faction-'.$row['faction'].

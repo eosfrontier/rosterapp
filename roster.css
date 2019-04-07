@@ -108,6 +108,7 @@ body {
 
 .roster-person {
     flex: initial;
+    position: relative;
     display: grid;
     grid-gap: 5px;
     grid-template-columns: 110px auto;
@@ -119,20 +120,59 @@ body {
     box-shadow: 0px 0px 8px #10c6de;
     min-width: 400px;
     background-color: #112244;
+    overflow: hidden;
 }
 
 .roster-person > div {
     color: #10c6de;
     text-shadow: 0px 0px 1px #000;
     text-shadow: 0px 0px 4px #10c6de;
+    grid-column: 2;
 }
 
-.roster-person-character_image {
+.roster-person > .roster-person-character_image {
     padding: 0px;
     grid-row: 1/10;
     grid-column: 1;
     max-width: 100px;
     max-height: 120px;
+}
+
+.roster-person-button-edit {
+    width: 20px;
+    height: 20px;
+    margin: 20px 20px 0 10px;
+    border: 1px solid #111111;
+    border-radius: 7px;
+    background-color: #116862;
+    box-shadow: 0 0 2px #11cfd4;
+    cursor: pointer;
+}
+
+.roster-person-button-delete {
+    width: 20px;
+    height: 20px;
+    margin: 20px 20px 0 10px;
+    border: 1px solid #111111;
+    border-radius: 7px;
+    background-color: #9b2310;
+    box-shadow: 0 0 2px #cf5620;
+    cursor: pointer;
+}
+.roster-person > .roster-person-buttons {
+    width: 0px;
+    background: linear-gradient(0deg, #116862, #111111);
+    border-left: 2px solid #116862;
+    position: absolute;
+    right: -2px;
+    top: 0px;
+    bottom: 0px;
+    transition: width 400ms ease-out;
+    overflow: hidden;
+}
+
+.roster-person:not(.editing):hover > .roster-person-buttons {
+    width: 52px;
 }
 
 .roster-person-character_image img {
@@ -185,6 +225,15 @@ body {
     border-color: #10c6de;
     box-shadow: 0 0 3px #10f6ff;
 }
+
+.roster-person .saved.changed input,
+.roster-person .changed input {
+    background-color: #106887;
+}
+.roster-person .saved input {
+    background-color: #104724;
+}
+
 
 #add-person-popup {
     display: none;
@@ -303,6 +352,11 @@ body {
     max-width: 100%;
 }
 
+::selection {
+    background-color: #107897;
+    color: #40f3ff;
+}
+
 @media only screen and (max-width: 1000px) {
     #headerframe {
         z-index: 1;
@@ -324,3 +378,4 @@ body {
         display: none;
     }
 }
+

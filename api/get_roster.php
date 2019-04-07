@@ -15,7 +15,7 @@ if ($conn->connect_error) {
 
 $conn->set_charset("utf8");
 
-$qryselect = "select c.characterID, c.character_name, concat('https://www.eosfrontier.space/eos_douane/images/mugs/',c.characterID,'.jpg') as character_image, faction, rank";
+$qryselect = "SELECT c.characterID, c.character_name, CONCAT('https://www.eosfrontier.space/eos_douane/images/mugs/',c.characterID,'.jpg') AS character_image, faction, rank";
 $fieldlist = "";
 
 $fields = "";
@@ -31,35 +31,35 @@ foreach (explode(",", "${fields},${extrafields}") as $field) {
     if ($field) {
         $fieldlist .= "'$field',";
         $qryselect .= ", (
-            select fv.fieldvalue
-            from med_fieldvalues fv
-            join med_fieldtypes ft on fv.fieldtypeID = ft.fieldtypeID
-            where fv.characterID = c.characterID
-            and ft.fieldname='$field'
-            and fv.close_timestamp is NULL
-            order by fv.mod_timestamp DESC
-            limit 1
+            SELECT fv.fieldvalue
+            FROM med_fieldvalues fv
+            JOIN med_fieldtypes ft ON fv.fieldtypeID = ft.fieldtypeID
+            WHERE fv.characterID = c.characterID
+            AND ft.fieldname='$field'
+            AND fv.close_timestamp IS NULL
+            ORDER BY fv.mod_timestamp DESC
+            LIMIT 1
         ) as `$field`";
     }
 }
 $qryselect  .= "
-from ecc_characters c
-where not exists (select 1 from med_fieldtypes ft join med_fieldvalues fv on ft.fieldtypeID = fv.fieldvalueID
-        where ft.fieldname='exclude' and fv.characterID = c.characterID)
-and c.character_name is not null
-having 1=1";
+FROM ecc_characters c
+WHERE NOT EXISTS (SELECT 1 FROM med_fieldtypes ft JOIN med_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
+        WHERE ft.fieldname='exclude' AND fv.characterID = c.characterID)
+AND c.character_name IS NOT NULL
+HAVING 1=1";
 foreach (explode(",", "${fields}") as $field) {
     $field = trim($field);
     if ($field) {
-        $qryselect .= " and `${field}` is not null";
+        $qryselect .= " AND `${field}` IS NOT NULL";
     }
 }
-$qryselect .= " order by character_name";
+$qryselect .= " ORDER BY character_name";
 
 $fieldnames = "";
 if ($fieldlist) {
     $fieldlist = rtrim($fieldlist,",");
-    $result = $conn->query("select fieldname, fieldlabel, fielddescription from med_fieldtypes where fieldname in (${fieldlist})");
+    $result = $conn->query("SELECT fieldname, fieldlabel, fielddescription FROM med_fieldtypes WHERE fieldname IN (${fieldlist})");
     if ($result) {
         $comma = "";
         while ($row = $result->fetch_assoc()) {
@@ -90,5 +90,4 @@ if ($result) {
 }
 
 $conn->close();
-
 ?> 

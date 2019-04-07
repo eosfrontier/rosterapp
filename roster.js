@@ -19,6 +19,9 @@ function load()
     $('#add-person-popup').click(function(e) { e.stopPropagation() })
     $('#search-input').on('input',input_searchlist)
     $('#search-input').on('keypress',keypress_searchlist)
+    $('#roster-list').on('click','.roster-person-button-edit', edit_person)
+    $('#roster-list').on('input','.editable > input', change_person_field)
+    $('#roster-list').on('change','.editable.changed > input', save_person_field)
 }
 
 function htmlize(text)
@@ -29,18 +32,26 @@ function htmlize(text)
 
 function roster_entry(entry, doedit)
 {
-    var html = ['<div class="roster-person" data-character-id="',entry.characterID,'">']
+    var html = ['<div class="roster-person']
+    if (doedit) { html.push(' editing') }
+    html.push('" data-character-id="',entry.characterID,'">')
     for (var f = 0; f < person_fields.length; f++) {
         pf = person_fields[f]
         var text = htmlize(entry[pf])
         var sf = special_fields[pf]
         if (sf) { text = sf.replace(/\?/, text) }
-        if (doedit) {
-            var ef = editable_fields[pf]
-            if (ef) { text = '<input placeholder="'+ef+'" value="'+text+'">' }
+        var ef = editable_fields[pf]
+        ecls = ''
+        if (ef) {
+            ecls = ' editable'
+            if (doedit) {
+                text = '<input placeholder="'+ef+'" value="'+text+'">'
+                ecls = ' editable initial'
+            }
         }
-        html.push('<div class="roster-person-',pf,'">',text,'</div>')
+        html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'">',text,'</div>')
     }
+    html.push('<div class="roster-person-buttons"><div class="roster-person-button-edit"></div><div class="roster-person-button-delete"></div></div>')
     html.push('</div>')
     return html.join('')
 }
@@ -102,14 +113,29 @@ function add_new_person()
     var item = $(this)
     var characterID = $(this).attr('data-character-id')
     if (characterID) {
-        $('#roster-list .roster-person.add-new').before(roster_entry({
+        var newentry = $(roster_entry({
             characterID: characterID,
             character_name: $(this).find('.search-person-character_name').text(),
             character_image: 'https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg',
             faction: $(this).find('.search-person-faction').text(),
             rank: $(this).find('.search-person-rank').text()
-            }, true))
+            }, true)).insertBefore('#roster-list .roster-person.add-new')
+        newentry.find('input').each(save_person_field)
+        newentry.find('input').first().focus().select()
     }
+}
+
+function edit_person()
+{
+    var rp = $(this).closest('.roster-person')
+    rp.find('.editable').each(function() {
+        var text = $(this).text()
+        var fieldname = $(this).attr('data-field-name')
+        var ef = editable_fields[fieldname] || ''
+        $(this).html('<input placeholder="'+ef+'" value="'+text+'">')
+    })
+    rp.addClass('editing')
+    rp.find('input').first().focus().select()
 }
 
 function input_searchlist()
@@ -145,3 +171,61 @@ function keypress_searchlist(e)
         }
     }
 }
+
+function change_person_field()
+{
+    var field =$(this).closest('.editable')
+    field.removeClass('saved')
+    if ($(this).val() != $(this).attr('value')) {
+        field.addClass('changed')
+    } else {
+        field.removeClass('changed')
+    }
+}
+
+function save_person_field()
+{
+    var newvalue = $(this).val()
+    var oldvalue = $(this).attr('value')
+    var field = $(this).closest('.editable')
+    if (oldvalue != newvalue || field.hasClass('initial')) {
+        var fieldname = field.attr('data-field-name')
+        var characterID = field.closest('.roster-person').attr('data-character-id')
+        if (characterID && fieldname) {
+            $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
+        }
+    }
+}
+
+function saved_person_field(result)
+{
+    if (result.characterID) {
+        if (result.error) {
+            show_message(result.error, 'error')
+        }
+        if (result.result) {
+            show_message(result.result, 'result')
+        }
+        if (!result.error) {
+            var entry = $("#roster-list .roster-person[data-character-id='"+result.characterID+"']")
+            var field = entry.find(".editable[data-field-name='"+result.fieldname+"']")
+            var input = field.find("input")
+            input.attr('value', result.fieldvalue)
+            if (field.hasClass('initial')) {
+                field.removeClass('saved')
+            } else {
+                field.addClass('saved')
+            }
+            if (input.val() == result.fieldvalue) {
+                field.removeClass('changed')
+            } else {
+                field.addClass('changed')
+            }
+        }
+    }
+}
+
+function show_message(message, messagetype)
+{
+}
+
