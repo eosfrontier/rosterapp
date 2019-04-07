@@ -46,15 +46,20 @@ $qryselect  .= "
 FROM ecc_characters c
 WHERE NOT EXISTS (SELECT 1 FROM med_fieldtypes ft JOIN med_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
         WHERE ft.fieldname='exclude' AND fv.characterID = c.characterID)
-AND c.character_name IS NOT NULL
-HAVING 1=1";
-foreach (explode(",", "${fields}") as $field) {
-    $field = trim($field);
-    if ($field) {
-        $qryselect .= " AND `${field}` IS NOT NULL";
+AND c.character_name IS NOT NULL";
+if (isset($_GET["characterID"])) {
+    $characterID = $conn->real_escape_string($_GET["characterID"]);
+    $qryselect .= " AND c.characterID=${characterID}";
+} else {
+    $qryselect .= " HAVING 1=1";
+    foreach (explode(",", "${fields}") as $field) {
+        $field = trim($field);
+        if ($field) {
+            $qryselect .= " AND `${field}` IS NOT NULL AND `${field}` <> '__deleted__'";
+        }
     }
+    $qryselect .= " ORDER BY character_name";
 }
-$qryselect .= " ORDER BY character_name";
 
 $fieldnames = "";
 if ($fieldlist) {

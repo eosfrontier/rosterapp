@@ -2,7 +2,8 @@ $(load)
 
 var roster_type = 'pilot';
 var person_fields = ['character_image','character_name','faction','rank','pilot_skill','pilot_interest']
-var skill_fields = ['pilot_skill','pilot_interest']
+var skill_fields = ['pilot_interest']
+var extra_fields = ['pilot_skill','status']
 var special_fields = { character_image:'<img src="?">' }
 var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
 var editable_fields = { pilot_skill: 'Pilot skill', pilot_interest: 'Interest in piloting' }
@@ -10,7 +11,7 @@ var search_value = ''
 
 function load()
 {
-    $.get('api/get_roster.php', { fields: skill_fields.join(','), extrafields: 'status' }, fill_roster, 'json')
+    $.get('api/get_roster.php', { fields: skill_fields.join(','), extrafields: extra_fields.join(',') }, fill_roster, 'json')
     $.get('api/get_people.php', { }, fill_searchlist)
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
@@ -22,6 +23,7 @@ function load()
     $('#roster-list').on('click','.roster-person-button-edit', edit_person)
     $('#roster-list').on('input','.editable > input', change_person_field)
     $('#roster-list').on('change','.editable.changed > input', save_person_field)
+    $('#roster-list').on('click','.roster-person-button-delete', delete_person)
 }
 
 function htmlize(text)
@@ -46,12 +48,15 @@ function roster_entry(entry, doedit)
             ecls = ' editable'
             if (doedit) {
                 text = '<input placeholder="'+ef+'" value="'+text+'">'
-                ecls = ' editable initial'
+                if (skill_fields.indexOf(pf) >= 0) {
+                    ecls += ' initial'
+                }
             }
         }
         html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'">',text,'</div>')
     }
-    html.push('<div class="roster-person-buttons"><div class="roster-person-button-edit"></div><div class="roster-person-button-delete"></div></div>')
+    html.push('<div class="roster-person-buttons"><div class="roster-person-button-edit button" title="Edit"></div>',
+        '<div class="roster-person-button-delete button" title="Delete"></div></div>')
     html.push('</div>')
     return html.join('')
 }
@@ -120,8 +125,34 @@ function add_new_person()
             faction: $(this).find('.search-person-faction').text(),
             rank: $(this).find('.search-person-rank').text()
             }, true)).insertBefore('#roster-list .roster-person.add-new')
-        newentry.find('input').each(save_person_field)
-        newentry.find('input').first().focus().select()
+        $.get('api/get_roster.php', { fields: skill_fields.join(','), extrafields: extra_fields.join(','), characterID: characterID }, show_new_person, 'json')
+    }
+}
+
+function show_new_person(roster)
+{
+    for (var p = 0; p < roster.people.length; p++) {
+        var pp = roster.people[p]
+        var entry = $("#roster-list .roster-person[data-character-id='"+pp.characterID+"']")
+        for (var f = 0; f < person_fields.length; f++) {
+            var pf = person_fields[f]
+            var value = pp[pf]
+            var field = entry.find("[data-field-name='"+pf+"']")
+            var input = field.find('input')
+            if (input.length == 1) {
+                input.attr('value', value)
+                if (value == '__deleted__') { value = '' }
+                input.val(value)
+            } else {
+                if (value == '__deleted__') { value = '' }
+                input.text(value)
+            }
+            if (value) {
+                field.removeClass('initial')
+            }
+        }
+        entry.find('input').each(save_person_field)
+        entry.find('input').first().focus().select()
     }
 }
 
@@ -152,7 +183,6 @@ function input_searchlist()
         if (selected_entries.length < 5) {
             $('#search-person-list').addClass('few-items')
             selected_entries.not(':has(.search-person-character_image img)').each(function() {
-                console.log(this)
                 var characterID = $(this).attr('data-character-id')
                 if (characterID) {
                     $(this).find('.search-person-character_image').html('<img src="https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg">')
@@ -186,7 +216,7 @@ function change_person_field()
 function save_person_field()
 {
     var newvalue = $(this).val()
-    var oldvalue = $(this).attr('value')
+    var oldvalue = $(this).attr('value') || ''
     var field = $(this).closest('.editable')
     if (oldvalue != newvalue || field.hasClass('initial')) {
         var fieldname = field.attr('data-field-name')
@@ -200,26 +230,59 @@ function save_person_field()
 function saved_person_field(result)
 {
     if (result.characterID) {
+        var entry = $("#roster-list .roster-person[data-character-id='"+result.characterID+"']")
+        var field = entry.find(".editable[data-field-name='"+result.fieldname+"']")
         if (result.error) {
             show_message(result.error, 'error')
+            field.addClass('error')
         }
         if (result.result) {
             show_message(result.result, 'result')
         }
         if (!result.error) {
-            var entry = $("#roster-list .roster-person[data-character-id='"+result.characterID+"']")
-            var field = entry.find(".editable[data-field-name='"+result.fieldname+"']")
-            var input = field.find("input")
-            input.attr('value', result.fieldvalue)
-            if (field.hasClass('initial')) {
-                field.removeClass('saved')
+            if (result.fieldvalue == '__deleted__') {
+                entry.addClass('deleted')
+                field.text('')
             } else {
-                field.addClass('saved')
+                var input = field.find("input")
+                input.attr('value', result.fieldvalue)
+                if (field.hasClass('initial')) {
+                    field.removeClass('saved')
+                } else {
+                    field.addClass('saved')
+                }
+                if (input.val() == result.fieldvalue) {
+                    field.removeClass('changed')
+                } else {
+                    field.addClass('changed')
+                }
             }
-            if (input.val() == result.fieldvalue) {
-                field.removeClass('changed')
-            } else {
-                field.addClass('changed')
+        }
+    }
+}
+
+function delete_person()
+{
+    var rp = $(this).closest('.roster-person')
+    if (rp.length == 1) {
+        var characterID = rp.attr('data-character-id')
+        if (characterID) {
+            var name = rp.find("[data-field-name='character_name']").text()
+            if (!name) { name = rp.find("[data-field-name='character_name'] input").val() }
+            if (confirm("Remove "+name+" from "+roster_type+" roster?")) {
+                rp.find('.editable[data-field-name]').each(function() {
+                    var fieldname = $(this).attr('data-field-name')
+                    if (skill_fields.indexOf(fieldname) >= 0) {
+                        var oldvalue = ''
+                        var input = $(this).find('input')
+                        if (input.length == 1) {
+                            oldvalue = input.attr('value')
+                        } else {
+                            oldvalue = $(this).text()
+                        }
+                        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: '__deleted__' }, saved_person_field)
+                    }
+                })
             }
         }
     }

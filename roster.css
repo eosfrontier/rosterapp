@@ -3,6 +3,11 @@
     src: url('/font/AquilaEthnocentric.ttf') format('truetype');
 }
 
+@font-face {
+    font-family: FontAwesome;
+    src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2?v=4.7.0');
+}
+
 .aquilafont {
     font-family: AquilaEthnocentric;
 }
@@ -123,6 +128,11 @@ body {
     overflow: hidden;
 }
 
+.roster-person.deleted {
+    opacity: 0.3;
+    background-color: #64140c;
+}
+
 .roster-person > div {
     color: #10c6de;
     text-shadow: 0px 0px 1px #000;
@@ -138,26 +148,36 @@ body {
     max-height: 120px;
 }
 
-.roster-person-button-edit {
+.roster-person-buttons .button {
     width: 20px;
     height: 20px;
     margin: 20px 20px 0 10px;
     border: 1px solid #111111;
     border-radius: 7px;
-    background-color: #116862;
-    box-shadow: 0 0 2px #11cfd4;
+    padding: auto;
+    text-align: center;
+    font: 16px FontAwesome;
+    text-shadow: none;
     cursor: pointer;
 }
 
+.roster-person-button-edit::before {
+    content: '\f040';
+}
+
+.roster-person-button-delete::before {
+    content: '\f1f8';
+}
+
+.roster-person-button-edit {
+    background-color: #116862;
+    box-shadow: 0 0 2px #11cfd4;
+}
+
 .roster-person-button-delete {
-    width: 20px;
-    height: 20px;
-    margin: 20px 20px 0 10px;
-    border: 1px solid #111111;
-    border-radius: 7px;
     background-color: #9b2310;
     box-shadow: 0 0 2px #cf5620;
-    cursor: pointer;
+    color: #ef5620;
 }
 .roster-person > .roster-person-buttons {
     width: 0px;
@@ -230,8 +250,13 @@ body {
 .roster-person .changed input {
     background-color: #106887;
 }
+
 .roster-person .saved input {
     background-color: #104724;
+}
+
+.roster-person .error input {
+    background-color: #601710;
 }
 
 
