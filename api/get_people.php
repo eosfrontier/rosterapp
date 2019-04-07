@@ -30,7 +30,8 @@ if ($result) {
     // Build json by hand because it didn't work in one go for some reason
     header('Content-Type: text/html');
     while ($row = $result->fetch_assoc()) {
-        echo '<div class="search-person search-faction-'.$row['faction'].'" data-character-id="'.$row['characterID'].'">';
+        echo '<div class="selected search-person search-faction-'.$row['faction'].
+            '" data-character-id="'.$row['characterID'].'" data-search-key="'.strtolower($row['character_name']).'">';
         echo '<div class="search-person-character_image"></div>';
         echo '<div class="search-person-character_name">'.$row['character_name'].'</div>';
         echo '<div class="search-person-faction">'.$row['faction'].'</div>';

@@ -6,6 +6,7 @@ var skill_fields = ['pilot_skill','pilot_interest']
 var special_fields = { character_image:'<img src="?">' }
 var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
 var editable_fields = { pilot_skill: 'Pilot skill', pilot_interest: 'Interest in piloting' }
+var search_value = ''
 
 function load()
 {
@@ -14,6 +15,10 @@ function load()
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
+    $(document).click(hide_new_person)
+    $('#add-person-popup').click(function(e) { e.stopPropagation() })
+    $('#search-input').on('input',input_searchlist)
+    $('#search-input').on('keypress',keypress_searchlist)
 }
 
 function htmlize(text)
@@ -71,17 +76,59 @@ function fill_searchlist(people)
 
 function search_new_person()
 {
-    $('#add-person-popup').addClass('visible')
+    $('#search-person-list .search-person').addClass('selected')
+    $('#search-input').val('')
+    $('#roster-list .roster-person').each(function() {
+        var characterID = $(this).attr('data-character-id')
+        if (characterID) {
+            $("#search-person-list .search-person[data-character-id='"+characterID+"']").addClass('exists')
+        }
+    })
+    setTimeout(function() {
+        $('#add-person-popup').addClass('visible')
+        $('#search-input').focus()
+        }, 0)
+}
+
+function hide_new_person()
+{
+    $('#add-person-popup').removeClass('visible')
 }
 
 function add_new_person()
 {
-    $('#add-person-popup').removeClass('visible')
+    hide_new_person()
     var item = $(this)
-    $('#roster-list .roster-person.add-new').before(roster_entry({
-        character_name: $(this).find('.search-person-character_name').text(),
-        character_image: 'https://www.eosfrontier.space/eos_douane/images/mugs/'+$(this).attr('data-character-id')+'.jpg',
-        faction: $(this).find('.search-person-faction').text(),
-        rank: $(this).find('.search-person-rank').text()
-        }, true))
+    var characterID = $(this).attr('data-character-id')
+    if (characterID) {
+        $('#roster-list .roster-person.add-new').before(roster_entry({
+            characterID: characterID,
+            character_name: $(this).find('.search-person-character_name').text(),
+            character_image: 'https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg',
+            faction: $(this).find('.search-person-faction').text(),
+            rank: $(this).find('.search-person-rank').text()
+            }, true))
+    }
+}
+
+function input_searchlist()
+{
+    var searchkey = $('#search-input').val().toLowerCase()
+    if (searchkey.indexOf(search_value) < 0) {
+        $('#search-person-list .search-person').addClass('selected')
+    }
+    search_value = searchkey
+    if (searchkey) {
+        $('#search-person-list .search-person.selected').not("[data-search-key*='"+searchkey+"']").removeClass('selected')
+    }
+}
+
+function keypress_searchlist(e)
+{
+    if (e.which == 13) {
+        var sellist = $('#search-person-list .search-person.selected:not(.exists)')
+        if (sellist.length == 1) {
+            sellist.click()
+        }
+    }
 }

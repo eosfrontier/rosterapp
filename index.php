@@ -23,7 +23,7 @@
     </div>
 </div>
 <div id="add-person-popup">
-    <div class="popup-header">Select a new <span class="roster-type">person</span></div>
+    <div class="popup-header">Select a new <span class="roster-type">person</span> <input placeholder="Search" id="search-input"></div>
     <div class="popup-person-list">
         <div id="search-person-list"></div>
     </div>
