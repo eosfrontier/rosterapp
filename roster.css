@@ -228,6 +228,7 @@ body {
     top: 30px;
     bottom: 0px;
     overflow-y: auto;
+    overflow-x: hidden;
     margin: 0;
 }
 
@@ -238,7 +239,7 @@ body {
 .search-person {
     display: none;
     grid-gap: 5px;
-    grid-template-columns: 50px auto;
+    grid-template-columns: auto;
     border: 0px solid #116466;
     padding: 2px;
     margin: 5px;
@@ -248,6 +249,7 @@ body {
     min-width: 400px;
     background-color: #112244;
     cursor: pointer;
+    overflow: hidden;
 }
 
 .search-person.selected:not(.exists) {
@@ -258,13 +260,23 @@ body {
     height: 60px;
 }
 
-.search-person-character_image img,
+#search-person-list.few-items .search-person {
+    grid-template-columns: 50px auto;
+}
+
+.search-person-faction,
+.search-person-rank,
+.search-person-character_name {
+    margin-left: 5px;
+}
+
+.search-person-character_image,
 .search-person-faction,
 .search-person-rank {
     display: none;
 }
 
-#search-person-list.few-items .search-person-character_image img,
+#search-person-list.few-items .search-person-character_image,
 #search-person-list.few-items .search-person-faction,
 #search-person-list.few-items .search-person-rank {
     display: block;
