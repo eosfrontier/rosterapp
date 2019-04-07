@@ -11,7 +11,7 @@ var search_value = ''
 
 function load()
 {
-    $.get('api/get_roster.php', { roster_type: 'pilot' }, fill_roster, 'json')
+    $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
     $.get('api/get_people.php', { }, fill_searchlist)
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
@@ -77,6 +77,27 @@ function roster_entry_new()
 
 function fill_roster(roster)
 {
+    person_fields = []
+    skill_fields = {}
+    editable_fields = {}
+    for (var f = 0; f < roster.fields.length; f++) {
+        var rf = roster.fields[f]
+        if (rf.roster_order != 0) {
+            person_fields.push(rf)
+        }
+        if (rf.roster_fieldtype == 1) {
+            skill_fields[rf.fieldname] = true
+        }
+        if (rf.field_external_table == "") {
+            editable_fields[rf.fieldname] = rf.fieldlabel
+        }
+    }
+    person_fields.sort(function(a,b) { a.roster_order - b.roster_order })
+    for (var f = 0; f < person_fields.length; f++) {
+        person_fields[f] = person_fields[f].fieldname
+    }
+    person_fields.unshift('character_name')
+    person_fields.unshift('character_image')
     var html = []
     for (var p = 0; p < roster.people.length; p++) {
         html.push(roster_entry(roster.people[p]))
@@ -125,7 +146,7 @@ function add_new_person()
             faction: $(this).find('.search-person-faction').text(),
             rank: $(this).find('.search-person-rank').text()
             }, true)).insertBefore('#roster-list .roster-person.add-new')
-        $.get('api/get_roster.php', { roster_type: 'pilot', characterID: characterID }, show_new_person, 'json')
+        $.get('api/get_roster.php', { roster_type: roster_type, characterID: characterID }, show_new_person, 'json')
     }
 }
 
