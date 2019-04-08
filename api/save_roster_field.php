@@ -33,8 +33,7 @@ SELECT ${fieldtypeID} as fieldtypeID, ${characterID} as characterID, '${newvalue
 FROM DUAL
 WHERE '${oldvalue}' = (SELECT fv.fieldvalue FROM (
         SELECT fv1.fieldvalue, fv1.mod_timestamp FROM ros_fieldvalues fv1
-        WHERE close_timestamp IS NULL
-        AND fv1.characterID = ${characterID}
+        WHERE fv1.characterID = ${characterID}
         AND fv1.fieldtypeID = ${fieldtypeID}
         UNION
         SELECT '' as fieldvalue, NULL as mod_timestamp
@@ -61,7 +60,6 @@ if ($conn->affected_rows == 1) {
     JOIN ros_fieldvalues fv ON (ft.fieldtypeID = fv.fieldtypeID)
     WHERE ft.fieldname='${fieldname}'
     AND fv.characterID=${characterID}
-    AND close_timestamp IS NULL
     ORDER BY mod_timestamp DESC
     LIMIT 1
     ");

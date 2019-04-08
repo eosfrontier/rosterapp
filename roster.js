@@ -1,22 +1,29 @@
 $(load)
 
-var roster_type = 'pilot';
-var person_fields = ['character_image','character_name','faction','rank','pilot_skill','pilot_interest']
-var skill_fields = ['pilot_interest']
-var extra_fields = ['pilot_skill','status']
+var roster_type
+var person_fields
+var skill_fields
+var extra_fields
 var special_fields = { character_image:'<img src="?">' }
 var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
-var editable_fields = { pilot_skill: 'Pilot skill', pilot_interest: 'Interest in piloting' }
+var editable_fields
 var search_value = ''
 
 function load()
 {
-    $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
-    $.get('api/get_people.php', { }, fill_searchlist)
+    var m = window.location.search.match(/^\?([^&]+)/)
+    if (m) { roster_type = m[1] }
+    $.get('api/get_roster.php', {}, fill_roster_types, 'json')
+    if (roster_type) {
+        $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
+        $.get('api/get_people.php', { }, fill_searchlist)
+    } else {
+        $('#roster-list').text('')
+    }
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
-    $(document).click(hide_new_person)
+    $(document).click(hide_popups)
     $('#add-person-popup').click(function(e) { e.stopPropagation() })
     $('#search-input').on('input',input_searchlist)
     $('#search-input').on('keypress',keypress_searchlist)
@@ -24,6 +31,24 @@ function load()
     $('#roster-list').on('input','.editable > input', change_person_field)
     $('#roster-list').on('change','.editable.changed > input', save_person_field)
     $('#roster-list').on('click','.roster-person-button-delete', delete_person)
+
+    $('.menu-button').click(show_menu)
+}
+
+function fill_roster_types(roster_types)
+{
+    var html = []
+    for (var t = 0; t < roster_types.roster_types.length; t++) {
+        var rt = roster_types.roster_types[t]
+        html.push('<a class="header-menu-roster_type" href="?',rt,'">',rt,'</a>')
+    }
+    $('#headermenu-list').html(html.join(''))
+}
+
+function show_menu(e)
+{
+    $(this).addClass('visible')
+    e.stopPropagation()
 }
 
 function htmlize(text)
@@ -48,7 +73,7 @@ function roster_entry(entry, doedit)
             ecls = ' editable'
             if (doedit) {
                 text = '<input placeholder="'+ef+'" value="'+text+'">'
-                if (skill_fields.indexOf(pf) >= 0) {
+                if (skill_fields[pf]) {
                     ecls += ' initial'
                 }
             }
@@ -88,7 +113,7 @@ function fill_roster(roster)
         if (rf.roster_fieldtype == 1) {
             skill_fields[rf.fieldname] = true
         }
-        if (rf.field_external_table == "") {
+        if (!rf.field_external_table) {
             editable_fields[rf.fieldname] = rf.fieldlabel
         }
     }
@@ -128,14 +153,15 @@ function search_new_person()
         }, 0)
 }
 
-function hide_new_person()
+function hide_popups()
 {
+    $('.menu-button').removeClass('visible')
     $('#add-person-popup').removeClass('visible')
 }
 
 function add_new_person()
 {
-    hide_new_person()
+    hide_popups()
     var item = $(this)
     var characterID = $(this).attr('data-character-id')
     if (characterID) {
@@ -268,7 +294,7 @@ function saved_person_field(result)
                 var input = field.find("input")
                 input.attr('value', result.fieldvalue)
                 if (field.hasClass('initial')) {
-                    field.removeClass('saved')
+                    field.removeClass('initial')
                 } else {
                     field.addClass('saved')
                 }
@@ -293,7 +319,7 @@ function delete_person()
             if (confirm("Remove "+name+" from "+roster_type+" roster?")) {
                 rp.find('.editable[data-field-name]').each(function() {
                     var fieldname = $(this).attr('data-field-name')
-                    if (skill_fields.indexOf(fieldname) >= 0) {
+                    if (skill_fields[fieldname]) {
                         var oldvalue = ''
                         var input = $(this).find('input')
                         if (input.length == 1) {

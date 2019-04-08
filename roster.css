@@ -44,6 +44,65 @@ body {
     text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
 }
 
+#headermenu {
+    float: right;
+    font-family: FontAwesome;
+    font-size: 70%;
+    font-weight: bold;
+    color: #D1E8E2;
+    margin: auto; 
+    text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
+    width: 1.2em;
+    margin-top: 0.2em;
+    text-align: center;
+    vertical-align: center;
+    background: linear-gradient(140deg, #002329, #115559);
+    border: 2px solid #112523;
+    border-radius: 10px;
+    box-shadow: 0 0 5px #412025;
+}
+
+#headermenu .menu-content {
+    top: 100%;
+    right: 0px;
+    background: linear-gradient(120deg, #002329, #115559);
+    border: 2px solid #112523;
+    box-shadow: 0 0 2px #000000, 0 0 5px #115559;
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.menu-button {
+    cursor: pointer;
+    position: relative;
+}
+
+.menu-button .menu-content {
+    display: none;
+    position: absolute;
+    z-index: 5;
+}
+
+.menu-button:hover .menu-content,
+.menu-button.visible .menu-content {
+    display: grid;
+}
+
+.menu-content a {
+    display: block;
+    font-size: 20px;
+    font-family: sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    color: #D1E8E2;
+    width: 100%;
+    text-align: left;
+    margin: 0 2px;
+    padding: 5px 10px;
+    box-shadow: 0 1px 4px #111111;
+}
+
 #footerframe {
     flex: initial;
     width: 100%;
@@ -54,7 +113,7 @@ body {
     box-shadow: 0 0 5px #111;
 }
 
-#footer_logo{
+#footer_logo {
     float: right;
     padding: 0 5px 0 15px;
 }
