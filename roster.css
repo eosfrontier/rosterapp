@@ -79,20 +79,25 @@ body {
 }
 
 .menu-button .menu-content {
-    display: none;
+    display: grid;
     position: absolute;
     z-index: 5;
+    transform: scale(0);
+    opacity: 0;
+    transition: opacity 400ms ease-out, transform 400ms ease 400ms;
 }
 
 .menu-button:hover .menu-content,
 .menu-button.visible .menu-content {
-    display: grid;
+    opacity: 0.9;
+    transform: none;
+    transition: opacity 400ms ease-out;
 }
 
 .menu-content a {
     display: block;
     font-size: 20px;
-    font-family: sans-serif;
+    font-family: AquilaEthnocentric;
     font-weight: bold;
     text-decoration: none;
     color: #D1E8E2;
@@ -101,6 +106,18 @@ body {
     margin: 0 2px;
     padding: 5px 10px;
     box-shadow: 0 1px 4px #111111;
+    white-space: nowrap;
+    transition: all 400ms ease-out;
+}
+
+.menu-content a:hover {
+        background-color: rgba(200, 250, 255, 0.3);
+}
+
+.menu-content a.header-menu-admin {
+    margin-top: 20px;
+    font-size: 50%;
+    color: #A1A8A2;
 }
 
 #footerframe {
@@ -463,3 +480,8 @@ body {
     }
 }
 
+@media only screen and (min-width: 1600px) {
+    #main-body {
+        width: 1320px;
+    }
+}
