@@ -11,15 +11,14 @@ var search_value = ''
 
 function load()
 {
-    var m = window.location.search.match(/^\?([^&]+)/)
-    if (m) { roster_type = m[1] }
-    $.get('api/get_roster.php', {}, fill_roster_types, 'json')
+    roster_type = get_cookie('roster_type')
     if (roster_type) {
         $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
-        $.get('api/get_people.php', { }, fill_searchlist)
     } else {
         $('#roster-list').text('')
     }
+    $.get('api/get_roster.php', {}, fill_roster_types, 'json')
+    $.get('api/get_people.php', { }, fill_searchlist)
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
@@ -33,6 +32,7 @@ function load()
     $('#roster-list').on('click','.roster-person-button-delete', delete_person)
 
     $('.menu-button').click(show_menu)
+    $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
 }
 
 function fill_roster_types(roster_types)
@@ -40,9 +40,19 @@ function fill_roster_types(roster_types)
     var html = []
     for (var t = 0; t < roster_types.roster_types.length; t++) {
         var rt = roster_types.roster_types[t]
-        html.push('<a class="header-menu-roster_type" href="?',rt,'">',rt,'</a>')
+        html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,'">',rt,' roster</div>')
     }
     $('#headermenu-list').html(html.join(''))
+}
+
+function set_roster_type()
+{
+    roster_type = $(this).attr('data-roster-type')
+    $('span.roster-type').text(roster_type)
+    set_cookie('roster_type', roster_type)
+    $('#roster-list').text('Loading '+roster_type+' roster')
+    $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
+    setTimeout(hide_popups, 0)
 }
 
 function show_menu(e)
@@ -337,5 +347,21 @@ function delete_person()
 
 function show_message(message, messagetype)
 {
+}
+
+function get_cookie(cookie)
+{
+    if (document.cookie) {
+        var val = document.cookie.match('(^|;)\\s*'+cookie+'=([^;]*)')
+        if (val) { return decodeURIComponent(val[2]) }
+    }
+    return ''
+}
+
+function set_cookie(cookie, value)
+{
+    var expir = new Date()
+    expir.setYear(expir.getFullYear() + 1)
+    document.cookie = cookie+'='+encodeURIComponent(value)+';expires='+expir.toUTCString()
 }
 
