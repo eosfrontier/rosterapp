@@ -92,10 +92,16 @@ body {
     z-index: 5;
     transform: scale(0);
     opacity: 0;
-    transition: opacity 400ms ease-out, transform 400ms ease 400ms;
+    transition: opacity 400ms ease-out, transform 0ms ease 400ms;
 }
 
-.menu-button:hover .menu-content,
+@media (pointer: fine) {
+.menu-button:hover .menu-content {
+    opacity: 0.9;
+    transform: none;
+    transition: opacity 400ms ease-out;
+}
+}
 .menu-button.visible .menu-content {
     opacity: 0.9;
     transform: none;
