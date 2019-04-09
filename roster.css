@@ -36,6 +36,8 @@ body {
 }
 
 #header {    
+    display: flex;
+    flex-flow: row;
     width: 900px;
     font-size: 250%;
     font-weight: bold;
@@ -44,26 +46,31 @@ body {
     text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
 }
 
-#headermenu {
-    float: right;
+#header .header-text {
+    margin: auto 10px;
+    flex: auto;
+}
+
+#header .header-button {
+    flex: initial;
     font-family: FontAwesome;
     font-size: 70%;
     font-weight: bold;
     color: #D1E8E2;
-    margin: auto; 
     text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
     width: 1.2em;
-    margin-top: 0.2em;
+    margin: auto 10px;
     text-align: center;
     vertical-align: center;
     background: linear-gradient(140deg, #002329, #115559);
     border: 2px solid #112523;
     border-radius: 10px;
     box-shadow: 0 0 5px #412025;
+    z-index: 2;
 }
 
 #headermenu .menu-content {
-    top: 100%;
+    top: calc(100% + 10px);
     right: 0px;
     background: linear-gradient(120deg, #002329, #115559);
     border: 2px solid #112523;
@@ -185,6 +192,8 @@ body {
 #roster-list {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
 .roster-person {
@@ -464,11 +473,13 @@ body {
         position: fixed;
     }
     #header {    
-        font-size: 150%;
+        font-size: 200%;
         width: 100%;
+        min-width: 450px;
     }
     #main-body {
         width: 100%;
+        min-width: 450px;
         position: static;
         overflow: visible;
         border: 0;
