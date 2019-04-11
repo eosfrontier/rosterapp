@@ -15,7 +15,7 @@ function load()
     $('#roster-list').on('click','.roster-field',choose_skill_list)
 
     $('#add-field-popup').click(function(e) { e.stopPropagation() })
-    $('#add-field-popup').on('click','.search-field', select_field_entry)
+    $('#add-field-popup').on('click','.search-field:not(.exists)', select_field_entry)
     $('#add-field-popup').on('click','.search-field-edit', edit_search_field)
     $('#add-field-popup').on('keypress','.search-field input',  function(e) { if (e.which == 13) { $(this).click() }})
 
@@ -76,7 +76,7 @@ function htmlize(text)
 
 function roster_entry(entry, newroster)
 {
-    var html = ['<div class="roster-person']
+    var html = ['<div class="roster-entry']
     if (newroster) { html.push(' new-roster') }
     html.push('" data-roster-id="',entry.rosterID,'">')
     html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit roster"></div>')
@@ -114,9 +114,14 @@ function roster_entry(entry, newroster)
         if (sf) {
             text = sf.replace(/\?/, text)
         } else {
-            text = '&lt;'+text+'&gt;'
+            if (ef.fieldtype > 0) {
+                text = '&lt;'+text+'&gt;'
+            } else {
+                text = '['+text+']'
+            }
         }
-        html.push('<div data-fieldname="',rf,'" class="roster-field-',rf,'">',text,'</div>')
+        var mand = (ef.fieldtype > 0 ? ' field-mandatory' : '')
+        html.push('<div data-fieldname="',rf,'" class="roster-field-',rf,mand,'">',text,'</div>')
     }
     html.push('<div class="roster-field roster-new-field"></div>')
     html.push('</div>')
@@ -133,50 +138,76 @@ function hide_popups(e)
 
 function start_new_roster()
 {
-    var rp = $(this).closest('.roster-person')
-    var typeval = rp.find('.roster-field-roster_type input').val()
+    if ($('#roster-list .roster-entry.editing').length > 0) {
+        return
+    }
+    var re = $(this).closest('.roster-entry')
+    var typeval = re.find('.roster-field-roster_type input').val()
     if (typeval == "") {
         return
     }
-    if (rp.hasClass('new-roster')) {
-        rp.removeClass('new-roster').addClass('editing')
-        rp.find('.roster-button-save').removeClass('disabled')
+    if (re.hasClass('new-roster')) {
+        $('#roster-list .roster-button-edit').addClass('disabled')
+        $('#roster-list .roster-entry').addClass('disabled')
+        re.removeClass('new-roster disabled').addClass('editing')
+        re.find('.roster-button-save').removeClass('disabled')
         var newinput = $('<input placeholder="Description of roster">')
-        rp.find('.roster-field-roster_description').html(newinput)
+        re.find('.roster-field-roster_description').html(newinput)
         newinput.focus()
         var ctypeval = typeval.charAt(0).toUpperCase()+typeval.slice(1)
         $('.search-field-default-skill').attr('data-fieldname', typeval+'_skill').find('input').val(ctypeval+' Skill')
         $('.search-field-default-interest').attr('data-fieldname', typeval+'_interest').find('input').val(ctypeval+' Interest')
-        rp.find('.roster-new-field').before(
-            '<div class="roster-field-'+typeval+'_skill roster-field data-fieldname="'+typeval+'_skill">&lt;'+ctypeval+' Skill&gt;</div>'+
-            '<div class="roster-field-'+typeval+'_interest roster-field data-fieldname="'+typeval+'_interest">&lt;'+ctypeval+' Interest&gt;</div>')
+        re.find('.roster-new-field').before(
+            '<div class="roster-field-'+typeval+'_skill roster-field" data-fieldname="'+typeval+'_skill">['+ctypeval+' Skill]</div>'+
+            '<div class="roster-field-'+typeval+'_interest roster-field field-mandatory" data-fieldname="'+typeval+'_interest">&lt;'+ctypeval+' Interest&gt;</div>')
     }
 }
 
 function edit_roster()
 {
-    var rp = $(this).closest('.roster-person')
-    var input = rp.find('.roster-field-roster_type input')
+    if ($('#roster-list .roster-entry.editing').length > 0) {
+        return
+    }
+    var re = $(this).closest('.roster-entry')
+    var input = re.find('.roster-field-roster_type input')
     if (input.length > 0) {
         input.focus()
     } else {
-        rp.find('.roster-button-edit').addClass('disabled')
-        rp.find('.roster-button-save').removeClass('disabled')
-        rp.find('[data-fieldname]').addClass('roster-field')
-        rp.addClass('editing')
+        $('#roster-list .roster-button-edit').addClass('disabled')
+        $('#roster-list .roster-entry').addClass('disabled')
+        re.find('.roster-button-save').removeClass('disabled')
+        re.find('[data-fieldname]').addClass('roster-field')
+        re.removeClass('disabled').addClass('editing')
+        $('#roster-list .roster-entry.disabled input').attr('disabled',true)
     }
 }
 
 function save_roster()
 {
-    var rp = $(this).closest('.roster-person')
-    rp.find('.roster-button-save').addClass('disabled')
-    alert('TODO: Store')
+    var re = $(this).closest('.roster-entry')
+    var savefields = {
+        'roster_type': re.find('.roster-field-roster_type input').val(),
+        'roster_description':re.find('.roster-field-roster_description input').val()
+    }
+    var ord = 1
+    re.find('.roster-field[data-fieldname]').each(function() {
+        var fieldtype = $(this).hasClass('field-mandatory') ? '1' : '0'
+        var field = { order: ord, fieldtype: fieldtype }
+        savefields['field-'+$(this).attr('data-fieldname')] = field
+    })
+    $.post('api/save_roster.php', savefields, saved_roster)
+    var savebutton = re.find('.roster-button-save')
+    savebutton.addClass('disabled')
+    // setTimeout(function() { savebutton.addClass('enabled') }, 5000)
+}
+
+function saved_roster(result)
+{
 }
 
 function delete_roster()
 {
-    var rp = $(this).closest('.roster-person')
+    var re = $(this).closest('.roster-entry')
     alert("TODO: Delete")
 }
 
@@ -188,6 +219,15 @@ function choose_skill_list()
 {
     $('#roster-list .roster-field.selecting').removeClass('selecting')
     $(this).addClass('selecting')
+    $('#add-field-popup .search-field').removeClass('exists selected')
+    var re = $(this).closest('.roster-entry')
+    $('#search-field-mandatory').prop('checked', $(this).hasClass('field-mandatory'))
+    re.find('.roster-field[data-fieldname]').each(function() {
+        var fieldname = $(this).attr('data-fieldname')
+        var cls = 'exists'
+        if ($(this).hasClass('selecting')) { cls = 'selected' }
+        $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"]').addClass(cls)
+    })
     setTimeout(function() { $('#add-field-popup').addClass('visible') }, 0)
 }
 
@@ -203,15 +243,28 @@ function select_field_entry()
         var input = $(this).find('input')
         var label
         if (input.length > 0) {
-            label = '<'+input.val()+'>'
+            label = input.val()
         } else {
-            label = '<'+$(this).text()+'>'
+            label = $(this).text()
+        }
+        var mandatory =$('#search-field-mandatory').prop('checked')
+        if (mandatory) { 
+            label = '<'+label+'>'
+        } else {
+            label = '['+label+']'
         }
         if (selecting.hasClass('roster-new-field')) {
-            selecting.before('<div class="roster-field-'+fn+' roster-field" data-fieldname="'+fn+'">'+htmlize(label)+'</div>')
+            var cls = ''
+            if (mandatory) { cls = ' field-mandatory' }
+            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'">'+htmlize(label)+'</div>')
         } else {
             selecting.text(label)
             selecting.attr('data-fieldname', fn)
+            if (mandatory) {
+                selecting.addClass('field-mandatory')
+            } else {
+                selecting.removeClass('field-mandatory')
+            }
         }
     }
     hide_popups()

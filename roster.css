@@ -124,7 +124,7 @@ body {
 }
 
 .menu-content .menu-item:hover {
-        background-color: rgba(200, 250, 255, 0.3);
+    background-color: rgba(200, 250, 255, 0.3);
 }
 
 .menu-content .menu-item.header-menu-admin {
@@ -198,40 +198,39 @@ body {
 #roster-list {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: start;
     justify-content: center;
 }
 
-.roster-person {
+.roster-entry {
     flex: initial;
     position: relative;
     display: grid;
-    grid-gap: 5px;
+    grid-gap: 0px;
     grid-template-columns: 110px auto;
     border: 1px solid #116466;
     padding: 5px;
     margin: 8px;
     border-radius: 25px;
-    height: 120px;
     box-shadow: 0px 0px 8px #10c6de;
+    min-height: 120px;
     min-width: 400px;
     background-color: #112244;
     overflow: hidden;
 }
 
-.roster-person.deleted {
+.roster-entry.deleted {
     opacity: 0.3;
     background-color: #64140c;
 }
 
-.roster-person > div {
+.roster-entry > div {
     color: #10c6de;
-    text-shadow: 0px 0px 1px #000;
     text-shadow: 0px 0px 4px #10c6de;
     grid-column: 2;
 }
 
-.roster-person > .roster-person-character_image {
+.roster-entry > .roster-person-character_image {
     padding: 0px;
     grid-row: 1/10;
     grid-column: 1;
@@ -239,7 +238,7 @@ body {
     max-height: 120px;
 }
 
-.roster-person > .roster-field-roster_type {
+.roster-entry > .roster-field-roster_type {
     padding: 0px;
     grid-row: 1/10;
     grid-column: 1;
@@ -262,7 +261,7 @@ body {
     justify-content: center;
 }
 
-.roster-person:not(.editing) .roster-new-field {
+.roster-entry:not(.editing) .roster-new-field {
     display: none;
 }
 
@@ -272,11 +271,13 @@ body {
 }
 
 .roster-field {
-    width: calc(100% - 7px);
+    width: calc(100% - 20px);
+    margin: 3px 0px;
     border: 1px solid #154860;
     border-radius: 6px;
     padding-left: 3px;
     box-shadow: 0 0 2px #10c6de;
+    cursor: pointer;
 }
 
 .field-box .field-text {
@@ -290,7 +291,7 @@ body {
     transform: none;
 }
 
-.roster-person > .roster-buttons {
+.roster-entry > .roster-buttons {
     width: 0px;
     background: linear-gradient(0deg, #116862, #111111);
     border-left: 2px solid #116862;
@@ -303,12 +304,17 @@ body {
     overflow: hidden;
 }
 
-.roster-person:not(.editing):hover > .roster-buttons {
+.roster-entry:not(.editing):not(.disabled):hover > .roster-buttons {
     width: 52px;
 }
 
-body.admin .roster-person:hover > .roster-buttons {
+body.admin .roster-entry:not(.disabled):hover > .roster-buttons {
     width: 52px;
+}
+
+body.admin .roster-entry.disabled {
+    opacity: 0.4;
+    transition: opacity 1000ms ease-out;
 }
 
 .roster-buttons .button {
@@ -393,7 +399,7 @@ body.admin .roster-person:hover > .roster-buttons {
     text-align: center;
 }
 
-.roster-person input {
+.roster-entry input {
     width: 100%;
     background-color: #000;
     border: 2px solid #154860;
@@ -409,24 +415,24 @@ body.admin .roster-person:hover > .roster-buttons {
     transform: translateX(-7px);
 }
 
-.roster-person input:hover {
+.roster-entry input:hover {
     box-shadow: 0 0 2px #10f6ff, 0 0 4px #10f6ff;
 }
-.roster-person input:focus {
+.roster-entry input:focus {
     border-color: #10c6de;
     box-shadow: 0 0 3px #10f6ff;
 }
 
-.roster-person .saved.changed input,
-.roster-person .changed input {
+.roster-entry .saved.changed input,
+.roster-entry .changed input {
     background-color: #106887;
 }
 
-.roster-person .saved input {
+.roster-entry .saved input {
     background-color: #104724;
 }
 
-.roster-person .error input {
+.roster-entry .error input {
     background-color: #601710;
 }
 
@@ -440,7 +446,7 @@ body.admin .roster-person:hover > .roster-buttons {
     z-index: 5;
     left: 0;
     right: 0;
-    color: #D9B08C;
+    color: #20D6E7;
     background: rgba(40,40,40,0.9);
     border: 2px solid #116466;
     margin: auto;
@@ -456,9 +462,37 @@ body.admin .roster-person:hover > .roster-buttons {
 
 .add-popup .popup-header {
     font-size: 20px;
-    padding: 5px 0 5px 20px;
+    padding: 5px 20px 5px 20px;
     border-bottom: 1px solid #116466;
     background: linear-gradient(178deg, #116466, #111111);
+    display: flex;
+}
+
+#add-field-popup .popup-header .caption {
+    flex: auto;
+}
+
+#add-field-popup .popup-header input[type=checkbox] {
+    display: none;
+}
+
+#add-field-popup .popup-header label {
+    flex: initial;
+    color: #107687;
+    font-size: 90%;
+}
+
+#add-field-popup .popup-header label::before {
+    content: '\25a2  ';
+    line-height: 100%;
+}
+
+#add-field-popup .popup-header input:checked + label::before {
+    content: '\2714  ';
+}
+
+#add-field-popup .popup-header input:checked + label {
+    color: #20d6e7;
 }
 
 #add-person-popup .popup-header input {
@@ -552,16 +586,34 @@ body.admin .roster-person:hover > .roster-buttons {
 .search-field-new,
 .search-field {
     border: 0px solid #116466;
-    padding: 2px 5px;
-    margin: 5px;
+    padding: 2px 8px;
+    margin: 6px;
     border-radius: 15px;
     height: 20px;
+    text-shadow: 0px 0px 1px #000, 0px 0px 4px #10c6de;
     box-shadow: 0px 0px 4px #10c6de;
     min-width: 400px;
     background-color: #112244;
     cursor: pointer;
     overflow: hidden;
     display: flex;
+}
+
+.search-field.exists {
+    opacity: 0.3;
+    cursor: initial;
+}
+
+.search-field.selected {
+    background-color: #115456;
+    color: #d0f8ff;
+    box-shadow: 0 0 4px #10f6ff;
+}
+
+.search-field:not(.exists):hover {
+    background-color: #11a6ae;
+    color: #d0f8ff;
+    box-shadow: 0 0 4px #10f6ff;
 }
 
 .search-field-default-skill[data-fieldname=""],
@@ -577,7 +629,7 @@ body.admin .roster-person:hover > .roster-buttons {
     flex: initial;
     border: 1px solid #116466;
     border-radius: 12px;
-    padding: 0px 2px;
+    padding: 0px 5px;
     background-color: #116466;
     margin-right: 10px;
 }

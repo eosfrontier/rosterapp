@@ -19,7 +19,7 @@ function load()
     }
     $.get('api/get_roster.php', {}, fill_roster_types, 'json')
     $.get('api/get_people.php', { }, fill_searchlist)
-    $('#roster-list').on('click','.roster-person.add-new',search_new_person)
+    $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
     $(document).click(hide_popups)
@@ -69,7 +69,7 @@ function htmlize(text)
 
 function roster_entry(entry, doedit)
 {
-    var html = ['<div class="roster-person']
+    var html = ['<div class="roster-entry']
     if (doedit) { html.push(' editing') }
     html.push('" data-character-id="',entry.characterID,'">')
     html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
@@ -98,7 +98,7 @@ function roster_entry(entry, doedit)
 
 function roster_entry_new()
 {
-    var html = ['<div class="roster-person add-new">']
+    var html = ['<div class="roster-entry add-new">']
     for (var f = 0; f < person_fields.length; f++) {
         pf = person_fields[f]
         var text = ''
@@ -151,7 +151,7 @@ function search_new_person()
     $('#search-person-list .search-person').addClass('selected')
     $('#search-person-list').removeClass('few-items')
     $('#search-input').val('')
-    $('#roster-list .roster-person').each(function() {
+    $('#roster-list .roster-entry').each(function() {
         var characterID = $(this).attr('data-character-id')
         if (characterID) {
             $("#search-person-list .search-person[data-character-id='"+characterID+"']").addClass('exists')
@@ -181,7 +181,7 @@ function add_new_person()
             character_image: 'https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg',
             faction: $(this).find('.search-person-faction').text(),
             rank: $(this).find('.search-person-rank').text()
-            }, true)).insertBefore('#roster-list .roster-person.add-new')
+            }, true)).insertBefore('#roster-list .roster-entry.add-new')
         $.get('api/get_roster.php', { roster_type: roster_type, characterID: characterID }, show_new_person, 'json')
     }
 }
@@ -190,7 +190,7 @@ function show_new_person(roster)
 {
     for (var p = 0; p < roster.people.length; p++) {
         var pp = roster.people[p]
-        var entry = $("#roster-list .roster-person[data-character-id='"+pp.characterID+"']")
+        var entry = $("#roster-list .roster-entry[data-character-id='"+pp.characterID+"']")
         for (var f = 0; f < person_fields.length; f++) {
             var pf = person_fields[f]
             var value = pp[pf]
@@ -215,7 +215,7 @@ function show_new_person(roster)
 
 function edit_person()
 {
-    var rp = $(this).closest('.roster-person')
+    var rp = $(this).closest('.roster-entry')
     rp.find('.editable').each(function() {
         var text = $(this).text()
         var fieldname = $(this).attr('data-field-name')
@@ -277,7 +277,7 @@ function save_person_field()
     var field = $(this).closest('.editable')
     if (oldvalue != newvalue || field.hasClass('initial')) {
         var fieldname = field.attr('data-field-name')
-        var characterID = field.closest('.roster-person').attr('data-character-id')
+        var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
             $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
         }
@@ -287,7 +287,7 @@ function save_person_field()
 function saved_person_field(result)
 {
     if (result.characterID) {
-        var entry = $("#roster-list .roster-person[data-character-id='"+result.characterID+"']")
+        var entry = $("#roster-list .roster-entry[data-character-id='"+result.characterID+"']")
         var field = entry.find(".editable[data-field-name='"+result.fieldname+"']")
         if (result.error) {
             show_message(result.error, 'error')
@@ -320,7 +320,7 @@ function saved_person_field(result)
 
 function delete_person()
 {
-    var rp = $(this).closest('.roster-person')
+    var rp = $(this).closest('.roster-entry')
     if (rp.length == 1) {
         var characterID = rp.attr('data-character-id')
         if (characterID) {
