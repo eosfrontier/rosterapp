@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Roster - work in progress</title>
+	<title>Edit Roster Types - work in progress</title>
         <meta charset="utf-8">
 	<meta name="robots" content="noindex, nofollow">
         <meta name="viewport" content="width=device-width">
@@ -12,13 +12,13 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/1.4.0/perfect-scrollbar.min.js"></script>
-	<script src="roster.js"></script>
+	<script src="admin.js"></script>
 </head>
 <body>
 
 <div id="headerframe">
     <div id="header" class="aquilafont">
-        <div class="header-text"><span class="roster-type">people</span> roster</div>
+        <div class="header-text">roster types</div>
         <div id="headermenu" class="header-button menu-button">&#61641;
             <div class="header-menu menu-content">
                 <div id="headermenu-list"></div>
@@ -32,10 +32,10 @@
         <h3 class="loading">Loading</h3>
     </div>
 </div>
-<div id="add-person-popup" class="add-popup">
-    <div class="popup-header">Select a new <span class="roster-type">person</span> <input placeholder="Search" id="search-input"></div>
-    <div class="popup-person-list">
-        <div id="search-person-list"></div>
+<div id="add-field-popup" class="add-popup">
+    <div class="popup-header">Select a field <input placeholder="Search" id="search-input"></div>
+    <div class="popup-field-list">
+        <div id="search-field-list"></div>
     </div>
 </div>
 <div id="footerframe">

@@ -18,7 +18,7 @@ function load()
         $('#roster-list').text('')
     }
     $.get('api/get_roster.php', {}, fill_roster_types, 'json')
-    $.get('api/get_people.php', { }, fill_searchlist)
+    $.get('api/get_people.php', { }, fill_searchlist, 'json')
     $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
@@ -26,10 +26,10 @@ function load()
     $('#add-person-popup').click(function(e) { e.stopPropagation() })
     $('#search-input').on('input',input_searchlist)
     $('#search-input').on('keypress',keypress_searchlist)
-    $('#roster-list').on('click','.roster-person-button-edit', edit_person)
+    $('#roster-list').on('click','.roster-button-edit', edit_person)
     $('#roster-list').on('input','.editable > input', change_person_field)
     $('#roster-list').on('change','.editable.changed > input', save_person_field)
-    $('#roster-list').on('click','.roster-person-button-delete', delete_person)
+    $('#roster-list').on('click','.roster-button-delete', delete_person)
 
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
@@ -90,8 +90,8 @@ function roster_entry(entry, doedit)
         }
         html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'">',text,'</div>')
     }
-    html.push('<div class="roster-person-buttons"><div class="roster-person-button-edit button" title="Edit"></div>',
-        '<div class="roster-person-button-delete button" title="Delete"></div></div>')
+    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
+        '<div class="roster-button-delete button" title="Delete"></div></div>')
     html.push('</div>')
     return html.join('')
 }

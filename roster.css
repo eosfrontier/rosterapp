@@ -55,14 +55,14 @@ body {
     flex: initial;
     font-family: FontAwesome;
     font-size: 70%;
-    font-weight: bold;
+    font-weight: normal;
     color: #D1E8E2;
     text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
     width: 1.2em;
     margin: auto 10px;
     text-align: center;
     vertical-align: center;
-    background: linear-gradient(140deg, #002329, #115559);
+    background: linear-gradient(140deg, #003349, #116579);
     border: 2px solid #112523;
     border-radius: 10px;
     box-shadow: 0 0 5px #412025;
@@ -239,7 +239,35 @@ body {
     max-height: 120px;
 }
 
-.roster-person-buttons .button {
+.roster-person > .roster-field-roster_type {
+    padding: 0px;
+    grid-row: 1/10;
+    grid-column: 1;
+    max-width: 100px;
+    max-height: 120px;
+}
+
+.roster-field-roster_type .field-box {
+    box-shadow: 0px 0px 3px #10c6ae;
+    border: 1px solid #106446;
+    border-radius: 20px;
+    margin: 0px;
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: radial-gradient(#102420, #154860);
+    color: #D1E8E2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.field-box .field-text {
+    font: 20px AquilaEthnocentric;
+    transform: rotate(-60deg);
+}
+
+.roster-buttons .button {
     width: 20px;
     height: 20px;
     margin: 20px 20px 0 10px;
@@ -252,25 +280,25 @@ body {
     cursor: pointer;
 }
 
-.roster-person-button-edit::before {
+.roster-button-edit::before {
     content: '\f040';
 }
 
-.roster-person-button-delete::before {
+.roster-button-delete::before {
     content: '\f1f8';
 }
 
-.roster-person-button-edit {
+.roster-button-edit {
     background-color: #116862;
     box-shadow: 0 0 2px #11cfd4;
 }
 
-.roster-person-button-delete {
+.roster-button-delete {
     background-color: #9b2310;
     box-shadow: 0 0 2px #cf5620;
     color: #ef5620;
 }
-.roster-person > .roster-person-buttons {
+.roster-person > .roster-buttons {
     width: 0px;
     background: linear-gradient(0deg, #116862, #111111);
     border-left: 2px solid #116862;
@@ -282,7 +310,7 @@ body {
     overflow: hidden;
 }
 
-.roster-person:not(.editing):hover > .roster-person-buttons {
+.roster-person:not(.editing):hover > .roster-buttons {
     width: 52px;
 }
 
@@ -351,7 +379,7 @@ body {
 }
 
 
-#add-person-popup {
+.add-popup {
     display: none;
     position: absolute;
     width:500px;
