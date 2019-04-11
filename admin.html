@@ -14,7 +14,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/1.4.0/perfect-scrollbar.min.js"></script>
 	<script src="admin.js"></script>
 </head>
-<body>
+<body class="admin">
 
 <div id="headerframe">
     <div id="header" class="aquilafont">
@@ -33,9 +33,13 @@
     </div>
 </div>
 <div id="add-field-popup" class="add-popup">
-    <div class="popup-header">Select a field <input placeholder="Search" id="search-input"></div>
+    <div class="popup-header">Select a field</div>
     <div class="popup-field-list">
+        <div class="search-field roster-field-empty" data-fieldname=""></div>
         <div id="search-field-list"></div>
+        <div class="search-field search-field-default-skill" data-fieldname=""><input placeholder="Description"><div class="search-field-edit">&#61504;</div></div>
+        <div class="search-field search-field-default-interest" data-fieldname=""><input placeholder="Description"><div class="search-field-edit">&#61504;</div></div>
+        <div class="search-field-new"><div class="search-field-new-button">New</div><input id="search-field-new" placeholder="New Field"></div>
     </div>
 </div>
 <div id="footerframe">

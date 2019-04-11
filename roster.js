@@ -18,8 +18,8 @@ function load()
         $('#roster-list').text('')
     }
     $.get('api/get_roster.php', {}, fill_roster_types, 'json')
-    $.get('api/get_people.php', { }, fill_searchlist, 'json')
-    $('#roster-list').on('click','div.roster-person.add-new',search_new_person)
+    $.get('api/get_people.php', { }, fill_searchlist)
+    $('#roster-list').on('click','.roster-person.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
     $(document).click(hide_popups)
@@ -72,6 +72,8 @@ function roster_entry(entry, doedit)
     var html = ['<div class="roster-person']
     if (doedit) { html.push(' editing') }
     html.push('" data-character-id="',entry.characterID,'">')
+    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
+        '<div class="roster-button-delete button" title="Delete"></div></div>')
     for (var f = 0; f < person_fields.length; f++) {
         pf = person_fields[f]
         var text = htmlize(entry[pf])
@@ -90,8 +92,6 @@ function roster_entry(entry, doedit)
         }
         html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'">',text,'</div>')
     }
-    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
-        '<div class="roster-button-delete button" title="Delete"></div></div>')
     html.push('</div>')
     return html.join('')
 }
@@ -166,7 +166,7 @@ function search_new_person()
 function hide_popups()
 {
     $('.menu-button').removeClass('visible')
-    $('#add-person-popup').removeClass('visible')
+    $('.add-popup').removeClass('visible')
 }
 
 function add_new_person()

@@ -1,23 +1,23 @@
 $(load)
 
-var special_fields = { roster_type:'<div class="image-field">?</div>', roster_description:'?' }
-var special_fieldsnew = { roster_type:'<div class="image-add-new">+</div>', roster_description:'?' }
+var special_fields = { roster_type:'<div class="image-field">?</div>' }
+var field_types
 
 function load()
 {
     $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
-    /*
-    $('#roster-list').on('click','div.roster-type.add-new',search_new_person)
-    $('span.roster-type').text(roster_type)
-    $('#search-person-list').on('click','.search-person', add_new_person)
-    $('#add-person-popup').click(function(e) { e.stopPropagation() })
-    $('#search-input').on('input',input_searchlist)
-    $('#search-input').on('keypress',keypress_searchlist)
-    $('#roster-list').on('click','.roster-button-edit', edit_person)
-    $('#roster-list').on('input','.editable > input', change_person_field)
-    $('#roster-list').on('change','.editable.changed > input', save_person_field)
-    $('#roster-list').on('click','.roster-button-delete', delete_person)
-    */
+
+    $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
+    $('#roster-list').on('click','.roster-button-delete:not(.disabled)', delete_roster)
+    $('#roster-list').on('click','.roster-button-save:not(.disabled)', save_roster)
+    $('#roster-list').on('change','.roster-field-roster_type input', start_new_roster)
+    $('#roster-list').on('keypress','.roster-field-roster_type input', function(e) { if (e.which == 13) { start_new_roster.call(this) }})
+    $('#roster-list').on('click','.roster-field',choose_skill_list)
+
+    $('#add-field-popup').click(function(e) { e.stopPropagation() })
+    $('#add-field-popup').on('click','.search-field', select_field_entry)
+    $('#add-field-popup').on('click','.search-field-edit', edit_search_field)
+    $('#add-field-popup').on('keypress','.search-field input',  function(e) { if (e.which == 13) { $(this).click() }})
 
     $(document).click(hide_popups)
     $('.menu-button').click(show_menu)
@@ -28,13 +28,31 @@ function fill_roster_list(roster_list)
 {
     var mhtml = []
     var html = []
+    field_types = roster_list.field_types
     for (var t = 0; t < roster_list.roster_types.length; t++) {
         var rt = roster_list.roster_types[t]
         mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'">',rt.roster_type,' roster</div>')
-        html.push(roster_entry(rt, roster_list.field_types))
+        html.push(roster_entry(rt))
     }
+    html.push(roster_entry({
+        roster_type: "new type",
+        fields: {
+            'status': { 'order': 0, 'fieldtype': 0 }
+        }
+        }, true))
     $('#headermenu-list').html(mhtml.join(''))
     $('#roster-list').html(html.join(''))
+    ftlist = []
+    for (var f in field_types) {
+        ftlist.push(f)
+    }
+    ftlist.sort(function(a,b) { return field_types[a].fieldlabel.localeCompare(field_types[b].fieldlabel) })
+    html = []
+    for (var f = 0; f < ftlist.length; f++) {
+        var ft = ftlist[f]
+        html.push('<div class="search-field" data-fieldname="',ft,'" title="',ft,'">',field_types[ft].fieldlabel,'</div>')
+    }
+    $('#search-field-list').html(html.join(''))
 }
 
 function set_roster_type()
@@ -56,11 +74,14 @@ function htmlize(text)
     return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
 }
 
-function roster_entry(entry, field_types, doedit)
+function roster_entry(entry, newroster)
 {
     var html = ['<div class="roster-person']
-    if (doedit) { html.push(' editing') }
+    if (newroster) { html.push(' new-roster') }
     html.push('" data-roster-id="',entry.rosterID,'">')
+    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit roster"></div>')
+    html.push('<div class="roster-button-delete button',(newroster && ' disabled'),'" title="Delete roster"></div>')
+    html.push('<div class="roster-button-save button disabled" title="Update / Store"></div></div>')
     var roster_fields = []
     for (var f in entry.fields) {
         if (entry.fields[f].order > 0) {
@@ -71,148 +92,135 @@ function roster_entry(entry, field_types, doedit)
     for (var f = 0; f < roster_fields.length; f++) {
         roster_fields[f] = roster_fields[f].fieldname
     }
-    html.push('<div class="roster-field-roster_type"><div class="field-box"><div class="field-text">', htmlize(entry.roster_type), '</div></div></div>')
-    html.push('<div class="roster-field-roster_description">', htmlize(entry.roster_description), '</div>')
+    html.push('<div class="roster-field-roster_type"><div class="field-box"><div class="field-text">')
+    if (newroster) {
+        html.push('<input placeholder="',htmlize(entry.roster_type),'">')
+    } else {
+        html.push(htmlize(entry.roster_type))
+    }
+    html.push('</div></div></div>')
+    html.push('<div class="roster-field-roster_description">')
+    if (newroster) {
+    } else {
+        html.push(htmlize(entry.roster_description))
+    }
+    html.push('</div>')
     for (var f = 0; f < roster_fields.length; f++) {
         var rf = roster_fields[f]
         var ef = entry.fields[roster_fields[f]]
         var ft = field_types[roster_fields[f]]
         var text = htmlize(ft.fieldlabel)
         var sf = special_fields[rf]
-        if (sf) { text = sf.replace(/\?/, text) }
-        html.push('<div data-field-name="',rf,'" class="roster-field-',rf,'">&lt;',text,'&gt;</div>')
+        if (sf) {
+            text = sf.replace(/\?/, text)
+        } else {
+            text = '&lt;'+text+'&gt;'
+        }
+        html.push('<div data-fieldname="',rf,'" class="roster-field-',rf,'">',text,'</div>')
     }
-    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
-        '<div class="roster-button-delete button" title="Delete"></div></div>')
+    html.push('<div class="roster-field roster-new-field"></div>')
     html.push('</div>')
     return html.join('')
 }
 
-function roster_entry_new()
+function hide_popups(e)
 {
-    var html = ['<div class="roster-person add-new">']
-    for (var f = 0; f < person_fields.length; f++) {
-        pf = person_fields[f]
-        var text = ''
-        var sf = special_fieldsnew[pf]
-        if (sf) { text = sf.replace(/\?/, text) }
-        html.push('<div class="roster-person-',pf,'">',text,'</div>')
-    }
-    html.push('</div>')
-    return html.join('')
-}
-
-function search_new_field()
-{
-    $('#search-field-list .search-field').addClass('selected')
-    $('#search-field-list').removeClass('few-items')
-    $('#search-input').val('')
-    /*
-    $('#roster-list .roster-field').each(function() {
-        var characterID = $(this).attr('data-character-id')
-        if (characterID) {
-            $("#search-field-list .search-field[data-character-id='"+characterID+"']").addClass('exists')
-        }
-    })
-    */
-    setTimeout(function() {
-        $('#add-field-popup').addClass('visible')
-        $('#search-input').focus()
-        }, 0)
-}
-
-function hide_popups()
-{
-    $('.menu-button').removeClass('visible')
-    $('#add-person-popup').removeClass('visible')
-}
-
-function add_new_person()
-{
-    hide_popups()
-    var item = $(this)
-    var characterID = $(this).attr('data-character-id')
-    if (characterID) {
-        var newentry = $(roster_entry({
-            characterID: characterID,
-            character_name: $(this).find('.search-person-character_name').text(),
-            character_image: 'https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg',
-            faction: $(this).find('.search-person-faction').text(),
-            rank: $(this).find('.search-person-rank').text()
-            }, true)).insertBefore('#roster-list .roster-person.add-new')
-        $.get('api/get_roster.php', { roster_type: roster_type, characterID: characterID }, show_new_person, 'json')
+    if (!e || e.which == 1) {
+        $('.menu-button').removeClass('visible')
+        $('.add-popup').removeClass('visible')
     }
 }
 
-function show_new_person(roster)
-{
-    for (var p = 0; p < roster.people.length; p++) {
-        var pp = roster.people[p]
-        var entry = $("#roster-list .roster-person[data-character-id='"+pp.characterID+"']")
-        for (var f = 0; f < person_fields.length; f++) {
-            var pf = person_fields[f]
-            var value = pp[pf]
-            var field = entry.find("[data-field-name='"+pf+"']")
-            var input = field.find('input')
-            if (input.length == 1) {
-                input.attr('value', value)
-                if (value == '__deleted__') { value = '' }
-                input.val(value)
-            } else {
-                if (value == '__deleted__') { value = '' }
-                input.text(value)
-            }
-            if (value) {
-                field.removeClass('initial')
-            }
-        }
-        entry.find('input').each(save_person_field)
-        entry.find('input').first().focus().select()
-    }
-}
-
-function edit_person()
+function start_new_roster()
 {
     var rp = $(this).closest('.roster-person')
-    rp.find('.editable').each(function() {
-        var text = $(this).text()
-        var fieldname = $(this).attr('data-field-name')
-        var ef = editable_fields[fieldname] || ''
-        $(this).html('<input placeholder="'+ef+'" value="'+text+'">')
-    })
-    rp.addClass('editing')
-    rp.find('input').first().focus().select()
+    var typeval = rp.find('.roster-field-roster_type input').val()
+    if (typeval == "") {
+        return
+    }
+    if (rp.hasClass('new-roster')) {
+        rp.removeClass('new-roster').addClass('editing')
+        rp.find('.roster-button-save').removeClass('disabled')
+        var newinput = $('<input placeholder="Description of roster">')
+        rp.find('.roster-field-roster_description').html(newinput)
+        newinput.focus()
+        var ctypeval = typeval.charAt(0).toUpperCase()+typeval.slice(1)
+        $('.search-field-default-skill').attr('data-fieldname', typeval+'_skill').find('input').val(ctypeval+' Skill')
+        $('.search-field-default-interest').attr('data-fieldname', typeval+'_interest').find('input').val(ctypeval+' Interest')
+        rp.find('.roster-new-field').before(
+            '<div class="roster-field-'+typeval+'_skill roster-field data-fieldname="'+typeval+'_skill">&lt;'+ctypeval+' Skill&gt;</div>'+
+            '<div class="roster-field-'+typeval+'_interest roster-field data-fieldname="'+typeval+'_interest">&lt;'+ctypeval+' Interest&gt;</div>')
+    }
 }
 
-function delete_person()
+function edit_roster()
 {
     var rp = $(this).closest('.roster-person')
-    if (rp.length == 1) {
-        var characterID = rp.attr('data-character-id')
-        if (characterID) {
-            var name = rp.find("[data-field-name='character_name']").text()
-            if (!name) { name = rp.find("[data-field-name='character_name'] input").val() }
-            if (confirm("Remove "+name+" from "+roster_type+" roster?")) {
-                rp.find('.editable[data-field-name]').each(function() {
-                    var fieldname = $(this).attr('data-field-name')
-                    if (skill_fields[fieldname]) {
-                        var oldvalue = ''
-                        var input = $(this).find('input')
-                        if (input.length == 1) {
-                            oldvalue = input.attr('value')
-                        } else {
-                            oldvalue = $(this).text()
-                        }
-                        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: '__deleted__' }, saved_person_field)
-                    }
-                })
-            }
-        }
+    var input = rp.find('.roster-field-roster_type input')
+    if (input.length > 0) {
+        input.focus()
+    } else {
+        rp.find('.roster-button-edit').addClass('disabled')
+        rp.find('.roster-button-save').removeClass('disabled')
+        rp.find('[data-fieldname]').addClass('roster-field')
+        rp.addClass('editing')
     }
+}
+
+function save_roster()
+{
+    var rp = $(this).closest('.roster-person')
+    rp.find('.roster-button-save').addClass('disabled')
+    alert('TODO: Store')
+}
+
+function delete_roster()
+{
+    var rp = $(this).closest('.roster-person')
+    alert("TODO: Delete")
 }
 
 function show_message(message, messagetype)
 {
+}
+
+function choose_skill_list()
+{
+    $('#roster-list .roster-field.selecting').removeClass('selecting')
+    $(this).addClass('selecting')
+    setTimeout(function() { $('#add-field-popup').addClass('visible') }, 0)
+}
+
+function select_field_entry()
+{
+    var selecting = $('#roster-list .roster-field.selecting')
+    if ($(this).hasClass('roster-field-empty')) {
+        if (!selecting.hasClass('roster-new-field')) {
+            selecting.remove()
+        }
+    } else {
+        var fn = $(this).attr('data-fieldname')
+        var input = $(this).find('input')
+        var label
+        if (input.length > 0) {
+            label = '<'+input.val()+'>'
+        } else {
+            label = '<'+$(this).text()+'>'
+        }
+        if (selecting.hasClass('roster-new-field')) {
+            selecting.before('<div class="roster-field-'+fn+' roster-field" data-fieldname="'+fn+'">'+htmlize(label)+'</div>')
+        } else {
+            selecting.text(label)
+            selecting.attr('data-fieldname', fn)
+        }
+    }
+    hide_popups()
+}
+
+function edit_search_field(e)
+{
+    $(this).closest('.search-field').find('input').focus().select()
+    e.stopPropagation()
 }
 
 function get_cookie(cookie)
@@ -230,4 +238,3 @@ function set_cookie(cookie, value)
     expir.setYear(expir.getFullYear() + 1)
     document.cookie = cookie+'='+encodeURIComponent(value)+';expires='+expir.toUTCString()
 }
-
