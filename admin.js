@@ -175,6 +175,10 @@ function edit_roster()
     } else {
         $('#roster-list .roster-button-edit').addClass('disabled')
         $('#roster-list .roster-entry').addClass('disabled')
+        var rd = re.find('.roster-field-roster_description')
+        if (rd.find('input').length == 0) {
+            rd.html('<input placeholder="Description of roster" value="'+htmlize(rd.text())+'">')
+        }
         re.find('.roster-button-save').removeClass('disabled')
         re.find('[data-fieldname]').addClass('roster-field')
         re.removeClass('disabled').addClass('editing')
@@ -195,15 +199,28 @@ function inputval_or_text(element)
 function save_roster()
 {
     var re = $(this).closest('.roster-entry')
+    var roster_type = inputval_or_text(re.find('.roster-field-roster_type .field-text'))
     var savefields = {
-        'roster_type': inputval_or_text(re.find('.roster-field-roster_type .field-text')),
-        'roster_description':inputval_or_text(re.find('.roster-field-roster_description'))
+        'roster_type': roster_type,
+        'roster_description':inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
+    }
+    var rosterID = re.attr('data-roster-id')
+    if (rosterID) {
+        savefields['rosterID'] = rosterID
     }
     var ord = 1
     re.find('.roster-field[data-fieldname]').each(function() {
         var fieldtype = $(this).hasClass('field-mandatory') ? '1' : '0'
         savefields['field-'+$(this).attr('data-fieldname')] = ord+','+fieldtype
         ord++
+    })
+    $('#add-field-popup .search-field input').each(function() {
+        var input = $(this)
+        var sf = input.closest('.search-field')
+        var fieldname = sf.attr('data-fieldname')
+        if (fieldname && savefields['field-'+fieldname]) {
+            savefields['fieldtype-'+fieldname] = (input.val() || fieldname.replace('_',' '))
+        }
     })
     $.post('api/save_roster.php', savefields, saved_roster)
     var savebutton = re.find('.roster-button-save')

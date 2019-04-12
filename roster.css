@@ -512,6 +512,16 @@ body.admin .roster-entry.disabled {
     margin: 0;
 }
 
+.popup-field-list {
+    position: absolute;
+    top: 30px;
+    bottom: 0px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+    width: 100%;
+}
+
 #search-person-list {
     margin: 10px 2px 5px 5px;
 }

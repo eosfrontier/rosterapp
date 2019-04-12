@@ -27,19 +27,43 @@ function exec_sql($query)
 
 $roster_type = $conn->real_escape_string($_POST["roster_type"]);
 $roster_description = $conn->real_escape_string($_POST["roster_description"]);
+$rosterID = null;
+if (isset($_POST["rosterID"])) {
+    $rosterID = $conn->real_escape_string($_POST["rosterID"]);
+}
 
 try {
     if (!$conn->begin_transaction()) { throw new Exception("SQL transaction failure: ".$conn->error); }
-    exec_sql("
-        INSERT INTO ros_rosters (roster_type, roster_description)
-        VALUES ('${roster_type}','${roster_description}')
-        ON DUPLICATE KEY UPDATE
-        roster_description='${roster_description}'
-    ");
-    $result = exec_sql("SELECT rosterID FROM ros_rosters WHERE roster_type='${roster_type}'");
+    if ($rosterID) {
+        exec_sql("
+            UPDATE ros_rosters
+            SET roster_type='${roster_type}'
+            , roster_description='${roster_description}'
+            WHERE rosterID=${rosterID}
+        ");
+    } else {
+        exec_sql("
+            INSERT INTO ros_rosters (roster_type, roster_description)
+            VALUES ('${roster_type}','${roster_description}')
+        ");
+        $rosterID = $conn->insert_id;
+    }
 
-    $rosterID = $result->fetch_object()->rosterID;
+    // Scan for all fieldtype-* parameters
+    foreach ($_POST as $key => $value) {
+        if (preg_match("/^fieldtype-(.*)$/", $key, $matches)) {
+            $fieldname = $conn->real_escape_string($matches[1]);
+            $fieldlabel = $conn->real_escape_string($value);
+            exec_sql("
+                INSERT INTO ros_fieldtypes(fieldname, fieldlabel)
+                VALUES ('${fieldname}', '${fieldlabel}')
+                ON DUPLICATE KEY UPDATE
+                fieldlabel = '${fieldlabel}'
+            ");
+        }
+    }
 
+    $mandatory_count = 0;
     $roster_fields = array();
     // Scan for all field-* parameters
     foreach ($_POST as $key => $value) {
@@ -50,6 +74,9 @@ try {
             }
             $roster_order = $conn->real_escape_string($matches[1]);
             $roster_fieldtype = $conn->real_escape_string($matches[2]);
+            if ($roster_fieldtype > 0) {
+                $mandatory_count++;
+            }
             $result = exec_sql("SELECT fieldtypeID FROM ros_fieldtypes WHERE fieldname='${fieldname}'");
             if ($result->num_rows != 1) { throw new Exception("Unknown field '${fieldname}'!"); }
             $fieldtypeID = $result->fetch_object()->fieldtypeID;
@@ -63,6 +90,9 @@ try {
             ");
         }
     }
+    if ($mandatory_count == 0) {
+        throw new Exception("No mandatory field for roster");
+    }
     $fieldtypelist = implode(",",$roster_fields);
     exec_sql("
         DELETE FROM ros_roster_fields
@@ -73,7 +103,7 @@ try {
     if (!$conn->commit()) { throw new Exception("SQL commit failure: ".$conn->error); }
     $saveresult = "\"result\":\"saved\"";
 } catch (Exception $ex) {
-    $saveresult = "\"error\":\"".json_encode($ex->getMessage())."\"";
+    $saveresult = "\"error\":".json_encode($ex->getMessage());
 }
 
 header('Content-Type: application/json');
