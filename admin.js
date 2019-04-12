@@ -182,18 +182,28 @@ function edit_roster()
     }
 }
 
+function inputval_or_text(element)
+{
+    var input = element.find('input')
+    if (input.length > 0) {
+        return input.val()
+    } else {
+        return element.text()
+    }
+}
+
 function save_roster()
 {
     var re = $(this).closest('.roster-entry')
     var savefields = {
-        'roster_type': re.find('.roster-field-roster_type input').val(),
-        'roster_description':re.find('.roster-field-roster_description input').val()
+        'roster_type': inputval_or_text(re.find('.roster-field-roster_type .field-text')),
+        'roster_description':inputval_or_text(re.find('.roster-field-roster_description'))
     }
     var ord = 1
     re.find('.roster-field[data-fieldname]').each(function() {
         var fieldtype = $(this).hasClass('field-mandatory') ? '1' : '0'
-        var field = { order: ord, fieldtype: fieldtype }
-        savefields['field-'+$(this).attr('data-fieldname')] = field
+        savefields['field-'+$(this).attr('data-fieldname')] = ord+','+fieldtype
+        ord++
     })
     $.post('api/save_roster.php', savefields, saved_roster)
     var savebutton = re.find('.roster-button-save')
@@ -203,6 +213,9 @@ function save_roster()
 
 function saved_roster(result)
 {
+    if (result.result) {
+        $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
+    }
 }
 
 function delete_roster()
