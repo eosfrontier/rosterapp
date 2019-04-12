@@ -286,6 +286,7 @@ body {
 }
 
 .field-box .field-text input {
+    text-align: center;
     font: 16px AquilaEthnocentric;
     width: 7.5em;
     transform: none;
@@ -346,6 +347,10 @@ body.admin .roster-entry.disabled {
     content: '\f040';
 }
 
+.roster-button-undo::before {
+    content: '\f0e2';
+}
+
 .roster-button-delete::before {
     content: '\f1f8';
 }
@@ -400,7 +405,7 @@ body.admin .roster-entry.disabled {
 }
 
 .roster-entry input {
-    width: 100%;
+    width: calc(100% - 5px);
     background-color: #000;
     border: 2px solid #154860;
     border-radius: 6px;
@@ -414,6 +419,27 @@ body.admin .roster-entry.disabled {
     transition: all 400ms ease-out;
     transform: translateX(-7px);
 }
+
+@keyframes duplicate {
+    0%   { transform: rotate(-55deg) scale(1.0); color: #000000; }
+    15%  { transform: rotate(-55deg) scale(1.3); color: #ef2132; }
+    30%  { transform: rotate(-55deg) scale(1.0); color: #000000; }
+    45%  { transform: rotate(-55deg) scale(1.3); color: #ef2132; }
+    60%  { transform: rotate(-55deg) scale(1.0); color: #000000; }
+    75%  { transform: rotate(-55deg) scale(1.3); color: #ef2132; }
+    90%  { transform: rotate(-55deg) scale(1.0); color: #000000; }
+    100% { transform: rotate(-55deg) scale(1.0); color: #ef2132; }
+}
+
+.roster-entry .field-text.duplicate {
+    color: #ef2132;
+    animation: duplicate 1.5s linear;
+}
+
+.roster-entry .field-text.duplicate input {
+    color: inherit;
+}
+
 
 .roster-entry input:hover {
     box-shadow: 0 0 2px #10f6ff, 0 0 4px #10f6ff;

@@ -8,11 +8,15 @@ function load()
     $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
+    $('#roster-list').on('click','.roster-button-undo:not(.disabled)', undo_roster)
     $('#roster-list').on('click','.roster-button-delete:not(.disabled)', delete_roster)
     $('#roster-list').on('click','.roster-button-save:not(.disabled)', save_roster)
     $('#roster-list').on('change','.roster-field-roster_type input', start_new_roster)
-    $('#roster-list').on('keypress','.roster-field-roster_type input', function(e) { if (e.which == 13) { start_new_roster.call(this) }})
+    $('#roster-list').on('keypress','.roster-field-roster_type input', function(e) { if (e.which == 13) { start_new_roster.call(this) } })
+    $('#roster-list').on('keydown','.roster-field-roster_type .field-text.duplicate input', function() { $('.field-text.duplicate').removeClass('duplicate') })
     $('#roster-list').on('click','.roster-field',choose_skill_list)
+
+    $('#roster-list').on('click','.new-roster:not(.editing)', function() { $(this).find('.roster-field-roster_type input').focus().select() })
 
     $('#add-field-popup').click(function(e) { e.stopPropagation() })
     $('#add-field-popup').on('click','.search-field:not(.exists)', select_field_entry)
@@ -142,14 +146,23 @@ function start_new_roster()
         return
     }
     var re = $(this).closest('.roster-entry')
-    var typeval = re.find('.roster-field-roster_type input').val()
+    var rtfield = re.find('.roster-field-roster_type .field-text')
+    var typeval = rtfield.find('input').val()
     if (typeval == "") {
         return
     }
+    $('.duplicate').removeClass('duplicate')
+    var dups = $('#roster-list .roster-field-roster_type .field-text').filter(function(i, el) { return $(el).text() == typeval })
+    if (dups.length > 0) { 
+        dups.addClass('duplicate')
+        rtfield.addClass('duplicate')
+        return
+    }
     if (re.hasClass('new-roster')) {
+        re.find('.roster-button-edit').removeClass('roster-button-edit').addClass('roster-button-undo')
         $('#roster-list .roster-button-edit').addClass('disabled')
         $('#roster-list .roster-entry').addClass('disabled')
-        re.removeClass('new-roster disabled').addClass('editing')
+        re.removeClass('disabled').addClass('editing')
         re.find('.roster-button-save').removeClass('disabled')
         var newinput = $('<input placeholder="Description of roster">')
         re.find('.roster-field-roster_description').html(newinput)
@@ -173,6 +186,7 @@ function edit_roster()
     if (input.length > 0) {
         input.focus()
     } else {
+        re.find('.roster-button-edit').removeClass('roster-button-edit').addClass('roster-button-undo')
         $('#roster-list .roster-button-edit').addClass('disabled')
         $('#roster-list .roster-entry').addClass('disabled')
         var rd = re.find('.roster-field-roster_description')
@@ -183,6 +197,15 @@ function edit_roster()
         re.find('[data-fieldname]').addClass('roster-field')
         re.removeClass('disabled').addClass('editing')
         $('#roster-list .roster-entry.disabled input').attr('disabled',true)
+    }
+}
+
+function undo_roster()
+{
+    var re = $(this).closest('.roster-entry')
+    if (re) {
+        $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
+        re.addClass('disabled')
     }
 }
 
