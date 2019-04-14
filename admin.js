@@ -147,7 +147,7 @@ function start_new_roster()
     }
     var re = $(this).closest('.roster-entry')
     var rtfield = re.find('.roster-field-roster_type .field-text')
-    var typeval = rtfield.find('input').val()
+    var typeval = rtfield.find('input').val().toLowerCase()
     if (typeval == "") {
         return
     }
