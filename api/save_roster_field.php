@@ -5,49 +5,82 @@ ini_set('display_errors', 1);
 require_once 'db_sql.php';
 
 $characterID = $conn->real_escape_string($_POST["characterID"]);
-$fieldname = $conn->real_escape_string($_POST["fieldname"]);
-$oldvalue = $conn->real_escape_string($_POST["oldvalue"]);
-$newvalue = $conn->real_escape_string($_POST["newvalue"]);
+$fieldname = $_POST["fieldname"];
+$oldvalue = $_POST["oldvalue"];
+$newvalue = $_POST["newvalue"];
 
-$result = exec_sql("SELECT fieldtypeID FROM ros_fieldtypes WHERE fieldname='${fieldname}'");
+$result = exec_sql("SELECT fieldtypeID FROM ros_fieldtypes WHERE fieldname='".$conn->real_escape_string($fieldname)."'");
 if ($result->num_rows != 1) { throw new Exception("Unknown field ${fieldname}"); }
 $fieldtypeID = $result->fetch_object()->fieldtypeID;
 
 $result = exec_sql("
-    SELECT MAX(fieldvalueID) AS prev_fieldvalueID
-    FROM ros_fieldvalues
-    WHERE fieldtypeID = ${fieldtypeID}
-    AND characterID = ${characterID}
-    AND fieldvalue = ${oldvalue}
+    SELECT fv.fieldvalue
+    FROM ros_fieldvalues fv
+    WHERE fv.fieldtypeID = ${fieldtypeID}
+    AND fv.characterID = ${characterID}
+    AND fv.fieldvalue IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM ros_fieldvalues nx
+                    WHERE nx.prev_fieldvalueID = fv.fieldvalueID)
 ");
-$prev_fieldvalueID = $result->fetch_object()->prev_fieldvalueID;
+$valchanged = true;
+if ($newvalue == "" and $result->num_rows == 0) {
+    $valchanged = false;
+}
+while ($row = $result->fetch_assoc()) {
+    if ($row["fieldvalue"] == $newvalue) {
+        $valchanged = false;
+    }
+}
+if ($valchanged) {
+    // We needed the non-escaped value before, but now we need the escaped value
+    $newvalueesc = "'".$conn->real_escape_string($newvalue)."'";
+    $oldvalueesc = $conn->real_escape_string($oldvalue);
+    if ($newvalue == "") { $newvalueesc = 'NULL'; }
 
-exec_sql("
-    INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldtypeID, fieldvalue)
-    VALUES (${fieldtypeID}, ${characterID}, ${prev_fieldtypeID}, ${newvalue})
-");
+    exec_sql("
+        INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldvalueID, fieldvalue)
+        VALUES (${fieldtypeID}, ${characterID},
+                ( SELECT prev_fieldvalueID FROM (SELECT MAX(fieldvalueID) AS prev_fieldvalueID
+                      FROM ros_fieldvalues
+                      WHERE fieldtypeID = ${fieldtypeID}
+                      AND characterID = ${characterID}
+                      AND fieldvalue = '${oldvalueesc}' ) workaround),
+                ${newvalueesc})
+    ");
+}
 
 $result = exec_sql("
     SELECT fv.fieldvalue FROM ros_fieldvalues fv
     WHERE fv.characterID=${characterID}
     AND fv.fieldtypeID=${fieldtypeID}
+    AND fv.fieldvalue IS NOT NULL
     AND NOT EXISTS(SELECT 1 FROM ros_fieldvalues nx
                    WHERE nx.prev_fieldvalueID = fv.fieldvalueID)
 ");
 
 header('Content-Type: application/json');
-echo "{\"characterID\":".$_POST["characterID"]."\n";
-echo ",\"fieldname\":".json_encode($_POST["fieldname"])."\n";
-if ($result->num_rows == 1) {
-    $row = $result->fetch_assoc();
-    $rfv = $row["fieldvalue"];
-    echo ",\"fieldvalue\":".json_encode($row["fieldvalue"])."\n";
-    if ($rfv == $_POST["newvalue"]) {
-        echo ",\"result\":\"saved\"\n";
+echo "{\"characterID\":${characterID}\n";
+echo ",\"fieldname\":".json_encode($fieldname)."\n";
+echo ",\"oldvalue\":".json_encode($oldvalue)."\n";
+echo ",\"newvalue\":".json_encode($newvalue)."\n";
+if ($result->num_rows <= 1) {
+    $rfv = null;
+    if ($result->num_rows == 1) {
+        $row = $result->fetch_assoc();
+        $rfv = $row["fieldvalue"];
+    }
+    echo ",\"fieldvalue\":".json_encode($rfv)."\n";
+    if ($rfv == $newvalue) {
+        if ($valchanged) {
+            echo ",\"result\":\"saved\"\n";
+        } else {
+            echo ",\"result\":\"saved but was already saved\"\n";
+        }
     } else {
         echo ",\"result\":\"saved but overridden\"\n";
     }
 } else {
+    echo ",\"result\":\"saved\"\n";
     echo ",\"error\":\"conflict\"\n";
     echo ",\"fieldvalues\":[";
     $comma = "";

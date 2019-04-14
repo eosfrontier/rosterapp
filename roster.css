@@ -230,9 +230,89 @@ body {
     grid-column: 2;
 }
 
+.roster-entry .field-conflict {
+    background-color: #403710;
+    border: 1px solid #605720;
+    border-radius: 5px;
+    box-shadow: 0 0 2px #c03730;
+    padding: 0 3px;
+    cursor: help;
+    display: grid;
+}
+
+.roster-entry .field-conflict-resolved {
+    background-color: #106710;
+    border: 1px solid #107720;
+    box-shadow: 0 0 2px #30c730;
+}
+
+.roster-entry .field-conflict-resolved .field-conflict-save {
+    display: none;
+}
+
+.field-conflict-save::before {
+    content: '\f064';
+    font: 20px FontAwesome;
+    line-height: 20px;
+}
+
+.roster-entry .field-conflict-save {
+    grid-row: 1/1000;
+    grid-column: 2;
+    align-self: center;
+    justify-self: right;
+    border: 1px solid #083740;
+    border-radius: 8px;
+    padding: 3px;
+    background-color: #106770;
+    color: #20b7d0;
+    box-shadow: 0 0 4px #a09740;
+    cursor: pointer;
+}
+
+.field-conflict-choice {
+    color: #c0a720;
+    text-shadow: 0 0 1px #000, 0 0 5px #f5a478;
+}
+
+.field-conflict-choose {
+    display: flex;
+    flex-flow: row;
+}
+
+.field-conflict-choose input[type="radio"] {
+    display: none;
+}
+
+.field-conflict-choose label {
+    flex: auto;
+}
+
+.field-conflict-choice:not(.selected) {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.field-conflict-choose input + label::before {
+    content: ' ';
+    width: 1em;
+    line-height: 100%;
+    display: inline-block;
+}
+
+.field-conflict-choose input:checked + label::before {
+    content: '\2714';
+}
+
+.field-conflict-choose input:not(:checked) + label {
+    text-decoration: line-through;
+    color: #907f10;
+    text-shadow: 0 0 1px #000, 0 0 5px #f5a478;
+}
+
 .roster-entry > .roster-person-character_image {
     padding: 0px;
-    grid-row: 1/10;
+    grid-row: 1/1000;
     grid-column: 1;
     max-width: 100px;
     max-height: 120px;
@@ -240,7 +320,7 @@ body {
 
 .roster-entry > .roster-field-roster_type {
     padding: 0px;
-    grid-row: 1/10;
+    grid-row: 1/1000;
     grid-column: 1;
     max-width: 100px;
     max-height: 120px;
@@ -285,7 +365,7 @@ body {
     transform: rotate(-55deg);
 }
 
-.field-box .field-text input {
+.field-box .field-text input[type="text"] {
     text-align: center;
     font: 16px AquilaEthnocentric;
     width: 7.5em;
@@ -404,7 +484,7 @@ body.admin .roster-entry.disabled {
     text-align: center;
 }
 
-.roster-entry input {
+.roster-entry input[type="text"] {
     width: calc(100% - 5px);
     background-color: #000;
     border: 2px solid #154860;
@@ -436,29 +516,29 @@ body.admin .roster-entry.disabled {
     animation: duplicate 1.5s linear;
 }
 
-.roster-entry .field-text.duplicate input {
+.roster-entry .field-text.duplicate input[type="text"] {
     color: inherit;
 }
 
 
-.roster-entry input:hover {
+.roster-entry input[type="text"]:hover {
     box-shadow: 0 0 2px #10f6ff, 0 0 4px #10f6ff;
 }
-.roster-entry input:focus {
+.roster-entry input[type="text"]:focus {
     border-color: #10c6de;
     box-shadow: 0 0 3px #10f6ff;
 }
 
-.roster-entry .saved.changed input,
-.roster-entry .changed input {
+.roster-entry .saved.changed input[type="text"],
+.roster-entry .changed input[type="text"] {
     background-color: #106887;
 }
 
-.roster-entry .saved input {
+.roster-entry .saved input[type="text"] {
     background-color: #104724;
 }
 
-.roster-entry .error input {
+.roster-entry .error input[type="text"] {
     background-color: #601710;
 }
 
@@ -521,7 +601,7 @@ body.admin .roster-entry.disabled {
     color: #20d6e7;
 }
 
-#add-person-popup .popup-header input {
+#add-person-popup .popup-header input[type="text"] {
     background-color: transparent;
     border: 0;
     font-family: sans-serif;
@@ -604,7 +684,7 @@ body.admin .roster-entry.disabled {
 
 .search-person-character_image {
     padding: 0px;
-    grid-row: 1/10;
+    grid-row: 1/1000;
     grid-column: 1;
     max-width: 50px;
     max-height: 60px;
@@ -670,7 +750,7 @@ body.admin .roster-entry.disabled {
     margin-right: 10px;
 }
 
-.search-field input {
+.search-field input[type="text"] {
     flex: auto;
     border: 0;
     color: inherit;
@@ -686,7 +766,7 @@ body.admin .roster-entry.disabled {
     font: 100% FontAwesome;
 }
 
-.search-field-new input {
+.search-field-new input[type="text"] {
     flex: auto;
     border: 0;
     color: inherit;

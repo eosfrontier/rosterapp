@@ -98,7 +98,7 @@ function roster_entry(entry, newroster)
     }
     html.push('<div class="roster-field-roster_type"><div class="field-box"><div class="field-text">')
     if (newroster) {
-        html.push('<input placeholder="',htmlize(entry.roster_type),'">')
+        html.push('<input type="text" placeholder="',htmlize(entry.roster_type),'">')
     } else {
         html.push(htmlize(entry.roster_type))
     }
@@ -164,7 +164,7 @@ function start_new_roster()
         $('#roster-list .roster-entry').addClass('disabled')
         re.removeClass('disabled').addClass('editing')
         re.find('.roster-button-save').removeClass('disabled')
-        var newinput = $('<input placeholder="Description of roster">')
+        var newinput = $('<input type="text" placeholder="Description of roster">')
         re.find('.roster-field-roster_description').html(newinput)
         newinput.focus()
         var ctypeval = typeval.charAt(0).toUpperCase()+typeval.slice(1)
@@ -191,7 +191,7 @@ function edit_roster()
         $('#roster-list .roster-entry').addClass('disabled')
         var rd = re.find('.roster-field-roster_description')
         if (rd.find('input').length == 0) {
-            rd.html('<input placeholder="Description of roster" value="'+htmlize(rd.text())+'">')
+            rd.html('<input type="text" placeholder="Description of roster" value="'+htmlize(rd.text())+'">')
         }
         re.find('.roster-button-save').removeClass('disabled')
         re.find('[data-fieldname]').addClass('roster-field')

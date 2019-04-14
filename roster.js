@@ -30,6 +30,8 @@ function load()
     $('#roster-list').on('input','.editable > input', change_person_field)
     $('#roster-list').on('change','.editable.changed > input', save_person_field)
     $('#roster-list').on('click','.roster-button-delete', delete_person)
+    $('#roster-list').on('click',':not(.editing) .field-conflict-choice', edit_person)
+    $('#roster-list').on('click','.field-conflict-save', save_conflict)
 
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
@@ -76,21 +78,29 @@ function roster_entry(entry, doedit)
         '<div class="roster-button-delete button" title="Delete"></div></div>')
     for (var f = 0; f < person_fields.length; f++) {
         pf = person_fields[f]
-        var text = htmlize(entry[pf])
+        var text = entry[pf]
+        var ecls = ''
+        var etitle = ''
+        if (Array.isArray(text)) {
+            text = '<div class="field-conflict-choice selected">'+text.map(htmlize).join('</div><div class="field-conflict-choice">')+'</div>'
+            ecls += ' field-conflict'
+            etitle = 'Conflicting edits, please resolve!'
+        } else {
+            text = htmlize(text)
+        }
         var sf = special_fields[pf]
         if (sf) { text = sf.replace(/\?/, text) }
         var ef = editable_fields[pf]
-        ecls = ''
         if (ef) {
-            ecls = ' editable'
+            ecls += ' editable'
             if (doedit) {
-                text = '<input placeholder="'+ef+'" value="'+text+'">'
+                text = '<input type="text" placeholder="'+ef+'" value="'+text+'">'
                 if (skill_fields[pf]) {
                     ecls += ' initial'
                 }
             }
         }
-        html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'">',text,'</div>')
+        html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'" title="',etitle,'">',text,'</div>')
     }
     html.push('</div>')
     return html.join('')
@@ -198,10 +208,10 @@ function show_new_person(roster)
             var input = field.find('input')
             if (input.length == 1) {
                 input.attr('value', value)
-                if (value == '__deleted__') { value = '' }
+                if (value == null) { value = '' }
                 input.val(value)
             } else {
-                if (value == '__deleted__') { value = '' }
+                if (value == null) { value = '' }
                 input.text(value)
             }
             if (value) {
@@ -216,14 +226,51 @@ function show_new_person(roster)
 function edit_person()
 {
     var rp = $(this).closest('.roster-entry')
-    rp.find('.editable').each(function() {
-        var text = $(this).text()
-        var fieldname = $(this).attr('data-field-name')
+    var cfv = null
+    if ($(this).hasClass('field-conflict-choice')) {
+        cfv = this
+    }
+    var conflict = false
+    var characterID = rp.attr('data-character-id')
+    rp.find('.editable.field-conflict').each(function() {
+        var ediv = $(this)
+        var fieldname = ediv.attr('data-field-name')
         var ef = editable_fields[fieldname] || ''
-        $(this).html('<input placeholder="'+ef+'" value="'+text+'">')
+        var html = []
+        var checked = 'checked'
+        if (cfv) {
+            checked = ''
+        }
+        var cnt = 1
+        ediv.find('div').each(function() {
+            var text = htmlize($(this).text())
+            if (cfv && cfv == this) {
+                checked = 'checked'
+            }
+            var id = characterID+'-'+fieldname+'-'+cnt
+            html.push('<div class="field-conflict-choose"><input type="radio" data-fieldvalue="',text,'" ',
+                'name="',characterID,'-',fieldname,'" ',checked,' id="',id,'">',
+                '<label for="',id,'">',text,'</label></div>')
+            checked = ''
+            cnt += 1
+        })
+        html.push('<div class="field-conflict-save" title="Resolve conflict"></div>')
+        ediv.html(html.join(''))
+        conflict = true
     })
+        
+    if (!conflict) {
+        rp.find('.field-conflict-resolved').removeClass('field-conflict-resolved')
+        rp.find('.editable').each(function() {
+            var ediv = $(this)
+            var fieldname = ediv.attr('data-field-name')
+            var ef = editable_fields[fieldname] || ''
+            var text = ediv.text()
+            ediv.html('<input type="text" placeholder="'+ef+'" value="'+text+'">')
+        })
+        rp.find('input').first().focus().select()
+    }
     rp.addClass('editing')
-    rp.find('input').first().focus().select()
 }
 
 function input_searchlist()
@@ -276,6 +323,7 @@ function save_person_field()
     var oldvalue = $(this).attr('value') || ''
     var field = $(this).closest('.editable')
     if (oldvalue != newvalue || field.hasClass('initial')) {
+        newvalue = newvalue || ' '
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
@@ -295,20 +343,32 @@ function saved_person_field(result)
         }
         if (result.result) {
             show_message(result.result, 'result')
-        }
-        if (!result.error) {
-            if (result.fieldvalue == '__deleted__') {
-                entry.addClass('deleted')
-                field.text('')
+            if (result.newvalue == "") {
+                if (field.hasClass('field-conflict')) {
+                    field.find(".field-conflict-choose:has(input[data-fieldvalue='"+result.oldvalue+"'])").remove()
+                    if (field.find('.field-conflict-choose').length <= 1) {
+                        field.removeClass('field-conflict').addClass('field-conflict-resolved').attr('title','')
+                    }
+                    if (entry.find('.field-conflict').length < 1) {
+                        entry.removeClass('editing')
+                    }
+                } else {
+                    entry.addClass('deleted')
+                    field.text('')
+                }
             } else {
                 var input = field.find("input")
-                input.attr('value', result.fieldvalue)
+                var fv = result.fieldvalue
+                if (fv == ' ') {
+                    fv = ''
+                }
+                input.attr('value', fv)
                 if (field.hasClass('initial')) {
                     field.removeClass('initial')
                 } else {
                     field.addClass('saved')
                 }
-                if (input.val() == result.fieldvalue) {
+                if (input.val() == fv) {
                     field.removeClass('changed')
                 } else {
                     field.addClass('changed')
@@ -337,12 +397,23 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: '__deleted__' }, saved_person_field)
+                        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
                     }
                 })
             }
         }
     }
+}
+
+function save_conflict()
+{
+    var fc = $(this).closest('.field-conflict')
+    var fieldname = fc.attr('data-field-name')
+    var characterID = fc.closest('.roster-entry').attr('data-character-id')
+    fc.find('.field-conflict-choose input:not(:checked)').each(function() {
+        var oldvalue = $(this).attr('data-fieldvalue')
+        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+    })
 }
 
 function show_message(message, messagetype)

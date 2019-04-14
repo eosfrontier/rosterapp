@@ -46,7 +46,7 @@ $result = $conn->query("
 
 $mandatoryfields = array();
 $fieldtypes = array();
-$qryselect = "SELECT c.`characterID`, CONCAT('https://www.eosfrontier.space/eos_douane/images/mugs/',c.`characterID`,'.jpg') AS `character_image`, c.`character_name`";
+$qryselect = "SELECT c.`characterID`, CONCAT('\"https://www.eosfrontier.space/eos_douane/images/mugs/',c.`characterID`,'.jpg\"') AS `character_image`, CONCAT('\"',REPLACE(c.`character_name`,'\"','\\\\\"'),'\"') AS `character_name`";
 while ($row = $result->fetch_assoc()) {
     $ext = $row["field_external_table"];
     $fieldname = $row["fieldname"];
@@ -56,10 +56,10 @@ while ($row = $result->fetch_assoc()) {
         array_push($mandatoryfields, $fieldname);
     }
     if ($ext == 'ecc_characters') {
-        $qryselect .= ", c.`${fieldname}`";
+        $qryselect .= ", CONCAT('\"',REPLACE(c.`${fieldname}`,'\"','\\\\\"'),'\"') AS `${fieldname}`";
     } elseif ($ext == 'med_fieldvalues') {
         $qryselect .= ", (
-            SELECT fv.fieldvalue
+            SELECT CONCAT('\"',REPLACE(fv.fieldvalue, '\"', '\\\\\"'),'\"')
             FROM med_fieldvalues fv
             JOIN med_fieldtypes ft ON fv.fieldtypeID = ft.fieldtypeID
             WHERE fv.characterID = c.characterID
@@ -73,19 +73,19 @@ while ($row = $result->fetch_assoc()) {
         die("Unknown external table ${ext}");
     } else {
         $qryselect .= ", (
-            SELECT fv.fieldvalue
+            SELECT CONCAT('[',GROUP_CONCAT(CONCAT('\"',REPLACE(fv.fieldvalue, '\"', '\\\\\"'),'\"') ORDER BY fv.fieldvalueID),']')
             FROM ros_fieldvalues fv
             WHERE fv.characterID = c.characterID
             AND fv.fieldtypeID=$fieldtypeID
-            ORDER BY fv.mod_timestamp DESC
-            LIMIT 1
+            AND NOT EXISTS (SELECT 1 FROM ros_fieldvalues nx
+                            WHERE nx.prev_fieldvalueID = fv.fieldvalueID)
         ) as `$fieldname`";
     }
 }
 
 $qryselect  .= "
 FROM ecc_characters c
-WHERE NOT EXISTS (SELECT 1 FROM ros_fieldtypes ft JOIN ros_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
+WHERE NOT EXISTS (SELECT 1 FROM med_fieldtypes ft JOIN med_fieldvalues fv ON ft.fieldtypeID = fv.fieldvalueID
         WHERE ft.fieldname='exclude' AND fv.characterID = c.characterID)
 AND c.character_name IS NOT NULL";
 if (isset($_GET["characterID"])) {
@@ -94,7 +94,7 @@ if (isset($_GET["characterID"])) {
 } else {
     $qryselect .= " HAVING 1=1";
     foreach ($mandatoryfields as $field) {
-        $qryselect .= " AND `${field}` IS NOT NULL AND `${field}` <> '__deleted__'";
+        $qryselect .= " AND `${field}` IS NOT NULL";
     }
     $qryselect .= " ORDER BY character_name";
 }
@@ -105,13 +105,32 @@ $result = $conn->query($qryselect);
 if ($result) {
     // Build json by hand because it didn't work in one go for some reason
     header('Content-Type: application/json');
-    echo "{\"fields\":[".join(",", $fieldtypes)."],\"people\":[";
+    echo "{\"fields\":[".join(",\n", $fieldtypes)."],\n\"people\":[";
     $comma = "";
     while ($row = $result->fetch_assoc()) {
-        echo $comma.json_encode($row);
+        echo "${comma}{";
+        $subcomma = "";
+        foreach ($row as $key => $value) {
+            if (!$value) {
+                $value = "null";
+            } else {
+                $valarr = json_decode($value);
+                if (is_array($valarr)) {
+                    if (count($valarr) == 0) {
+                        $value = "null";
+                    } elseif (count($valarr) == 1) {
+                        $value = json_encode($valarr[0]);
+                    }
+                }
+            }
+            echo $subcomma.json_encode($key).":${value}";
+            $subcomma = ",\n";
+        }
+        echo "}";
         $comma = ",\n";
     }
-    echo "]}";
+    // echo "]}";
+    echo "],\n\"selectquery\":".json_encode($qryselect)."}";
 } else {
     echo "SQL: ${qryselect}";
     die("SQL failure".$conn->error);
