@@ -112,7 +112,11 @@ function roster_entry(entry, doedit)
         if (ef) {
             ecls += ' editable'
             if (doedit) {
-                text = '<input type="text" placeholder="'+ef+'" value="'+text+'">'
+                if (entry[pf] == null) {
+                    text = '<input type="text" placeholder="'+ef+'">'
+                } else {
+                    text = '<input type="text" placeholder="'+ef+'" value="'+text+'">'
+                }
                 if (skill_fields[pf]) {
                     ecls += ' initial'
                 }
@@ -347,12 +351,14 @@ function change_person_field()
 function save_person_field()
 {
     var newvalue = $(this).val()
-    var oldvalue = $(this).attr('value') || ''
+    var oldvalue = $(this).attr('value')
+    if (oldvalue == null) { oldvalue = null }
+    if (newvalue == null) { newvalue = null }
     var field = $(this).closest('.editable')
     if (oldvalue != newvalue || field.hasClass('initial')) {
-        newvalue = newvalue
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
+        console.log(characterID, fieldname, oldvalue, newvalue, this)
         if (characterID && fieldname) {
             $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
         }

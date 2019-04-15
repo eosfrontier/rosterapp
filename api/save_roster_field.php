@@ -44,7 +44,7 @@ $result = exec_sql("
                     WHERE nx.prev_fieldvalueID = fv.fieldvalueID)
 ");
 $valchanged = true;
-if ($newvalue == null and $result->num_rows == 0) {
+if ($newvalue === null and $result->num_rows == 0) {
     $valchanged = false;
 }
 while ($row = $result->fetch_assoc()) {
@@ -56,7 +56,7 @@ if ($valchanged) {
     // We needed the non-escaped value before, but now we need the escaped value
     $newvalueesc = "'".$conn->real_escape_string($newvalue)."'";
     $oldvalueesc = $conn->real_escape_string($oldvalue);
-    if ($newvalue == null) { $newvalueesc = 'NULL'; }
+    if ($newvalue === null) { $newvalueesc = 'NULL'; }
 
     exec_sql("
         INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldvalueID, fieldvalue)
