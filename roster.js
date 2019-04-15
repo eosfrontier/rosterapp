@@ -9,6 +9,17 @@ var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
 var editable_fields
 var search_value = ''
 
+$.postjson = function(url, data, callback) {
+    $.ajax({
+        'type': 'POST',
+        'url': url,
+        'contentType': 'application/json',
+        'data': JSON.stringify(data),
+        'dataType': 'json',
+        'success': callback
+    })
+}
+
 function load()
 {
     roster_type = get_cookie('roster_type')
@@ -323,11 +334,11 @@ function save_person_field()
     var oldvalue = $(this).attr('value') || ''
     var field = $(this).closest('.editable')
     if (oldvalue != newvalue || field.hasClass('initial')) {
-        newvalue = newvalue || ' '
+        newvalue = newvalue
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
-            $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
+            $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
         }
     }
 }
@@ -343,7 +354,7 @@ function saved_person_field(result)
         }
         if (result.result) {
             show_message(result.result, 'result')
-            if (result.newvalue == "") {
+            if (result.newvalue == null) {
                 if (field.hasClass('field-conflict')) {
                     field.find(".field-conflict-choose:has(input[data-fieldvalue='"+result.oldvalue+"'])").remove()
                     if (field.find('.field-conflict-choose').length <= 1) {
@@ -359,9 +370,6 @@ function saved_person_field(result)
             } else {
                 var input = field.find("input")
                 var fv = result.fieldvalue
-                if (fv == ' ') {
-                    fv = ''
-                }
                 input.attr('value', fv)
                 if (field.hasClass('initial')) {
                     field.removeClass('initial')
@@ -397,7 +405,7 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+                        $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
                     }
                 })
             }
@@ -412,7 +420,7 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        $.post('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+        $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
     })
 }
 
