@@ -1,10 +1,11 @@
 $(load)
 
+var gRosters
 var roster_type
 var person_fields
 var skill_fields
 var extra_fields
-var special_fields = { character_image:'<img src="?">' }
+var special_fields = { character_image:'<img src="https://www.eosfrontier.space/eos_douane/images/mugs/{{characterID}}.jpg">' }
 var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
 var editable_fields
 var search_value = ''
@@ -23,13 +24,7 @@ $.postjson = function(url, data, callback) {
 function load()
 {
     roster_type = get_cookie('roster_type')
-    if (roster_type) {
-        $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
-    } else {
-        $('#roster-list').text('')
-    }
     $.get('api/get_roster.php', {}, fill_roster_types, 'json')
-    $.get('api/get_people.php', { }, fill_searchlist)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
@@ -48,14 +43,18 @@ function load()
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
 }
 
-function fill_roster_types(roster_types)
+function fill_roster_types(rosters)
 {
+    gRosters = rosters
     var html = []
-    for (var t = 0; t < roster_types.roster_types.length; t++) {
-        var rt = roster_types.roster_types[t]
+    for (var rt in rosters.rosters) {
         html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,'">',rt,' roster</div>')
     }
     $('#headermenu-list').html(html.join(''))
+    fill_searchlist()
+    if (roster_type) {
+        fill_roster()
+    }
 }
 
 function set_roster_type()
@@ -63,8 +62,9 @@ function set_roster_type()
     roster_type = $(this).attr('data-roster-type')
     $('span.roster-type').text(roster_type)
     set_cookie('roster_type', roster_type)
-    $('#roster-list').text('Loading '+roster_type+' roster')
-    $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
+    // $('#roster-list').text('Loading '+roster_type+' roster')
+    // $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
+    fill_roster()
     setTimeout(hide_popups, 0)
 }
 
@@ -76,12 +76,19 @@ function show_menu(e)
 
 function htmlize(text)
 {
-    if (!text) return ''
-    return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
+    if (text == null) { return '' }
+    return String(text).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
 }
 
 function roster_entry(entry, doedit)
 {
+    if (!doedit) {
+        for (var f in skill_fields) {
+            if (!entry[f]) {
+                return
+            }
+        }
+    }
     var html = ['<div class="roster-entry']
     if (doedit) { html.push(' editing') }
     html.push('" data-character-id="',entry.characterID,'">')
@@ -89,7 +96,7 @@ function roster_entry(entry, doedit)
         '<div class="roster-button-delete button" title="Delete"></div></div>')
     for (var f = 0; f < person_fields.length; f++) {
         pf = person_fields[f]
-        var text = entry[pf]
+        var text = entry[pf] || ''
         var ecls = ''
         var etitle = ''
         if (Array.isArray(text)) {
@@ -100,7 +107,7 @@ function roster_entry(entry, doedit)
             text = htmlize(text)
         }
         var sf = special_fields[pf]
-        if (sf) { text = sf.replace(/\?/, text) }
+        if (sf) { text = sf.replace(/{{(.*?)}}/, function(v1, v2) { return entry[v2] }) }
         var ef = editable_fields[pf]
         if (ef) {
             ecls += ' editable'
@@ -131,13 +138,14 @@ function roster_entry_new()
     return html.join('')
 }
 
-function fill_roster(roster)
+function fill_roster()
 {
     person_fields = []
     skill_fields = {}
     editable_fields = {}
-    for (var f = 0; f < roster.fields.length; f++) {
-        var rf = roster.fields[f]
+    var roster = gRosters.rosters[roster_type]
+    for (var f = 0; f < roster.length; f++) {
+        var rf = roster[f]
         if (rf.roster_order != 0) {
             person_fields.push(rf)
         }
@@ -155,16 +163,31 @@ function fill_roster(roster)
     person_fields.unshift('character_name')
     person_fields.unshift('character_image')
     var html = []
-    for (var p = 0; p < roster.people.length; p++) {
-        html.push(roster_entry(roster.people[p]))
+    for (var p = 0; p < gRosters.people.length; p++) {
+        html.push(roster_entry(gRosters.people[p]))
     }
     html.push(roster_entry_new())
     $('#roster-list').html(html.join(''))
 }
 
-function fill_searchlist(people)
+function fill_searchlist()
 {
-    $('#search-person-list').html(people)
+    var html = []
+    for (var p = 0; p < gRosters.people.length; p++) {
+        var entry = gRosters.people[p]
+        html.push('<div class="selected search-person')
+        if (entry['faction']) { html.push(' search-faction-',htmlize(entry['faction'])) }
+        html.push('" data-character-index="',p,
+            '" data-character-id="',htmlize(entry['characterID']),'" data-search-key="',
+            htmlize(entry['character_name'].toLowerCase()),'">',
+            '<div class="search-person-character_image"></div>',
+            '<div class="search-person-character_name">',htmlize(entry['character_name']),'</div>',
+            '<div class="search-person-faction">',htmlize(entry['faction']),'</div>',
+            '<div class="search-person-rank">',htmlize(entry['rank']),'</div>',
+            '</div>')
+    }
+
+    $('#search-person-list').html(html.join(''))
 }
 
 function search_new_person()
@@ -194,16 +217,11 @@ function add_new_person()
 {
     hide_popups()
     var item = $(this)
-    var characterID = $(this).attr('data-character-id')
-    if (characterID) {
-        var newentry = $(roster_entry({
-            characterID: characterID,
-            character_name: $(this).find('.search-person-character_name').text(),
-            character_image: 'https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg',
-            faction: $(this).find('.search-person-faction').text(),
-            rank: $(this).find('.search-person-rank').text()
-            }, true)).insertBefore('#roster-list .roster-entry.add-new')
-        $.get('api/get_roster.php', { roster_type: roster_type, characterID: characterID }, show_new_person, 'json')
+    var idx = $(this).attr('data-character-index')
+    if (idx) {
+        var newentry = $(roster_entry(gRosters.people[idx], true)).insertBefore('#roster-list .roster-entry.add-new')
+        newentry.find('input').each(save_person_field)
+        newentry.find('input').first().focus().select()
     }
 }
 
@@ -229,8 +247,6 @@ function show_new_person(roster)
                 field.removeClass('initial')
             }
         }
-        entry.find('input').each(save_person_field)
-        entry.find('input').first().focus().select()
     }
 }
 
