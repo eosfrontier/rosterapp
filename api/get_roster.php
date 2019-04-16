@@ -5,6 +5,21 @@ ini_set('display_errors', 1);
 require_once 'db_sql.php';
 
 $result = exec_sql("
+  SELECT CONCAT(MAX(rs.rosterID),',',MAX(rf.roster_fieldID),',',MAX(fv.fieldvalueID)) as etag
+  FROM ros_rosters rs
+  JOIN ros_roster_fields rf
+  JOIN ros_fieldvalues fv
+");
+$etag = $result->fetch_object()->etag;
+if (isset($_SERVER["HTTP_IF_NONE_MATCH"])) {
+  if (preg_match("/\"${etag}(-gzip)?\"/", $_SERVER["HTTP_IF_NONE_MATCH"])) {
+    $conn->close();
+    header("HTTP/1.1 304 Not Modified");
+    exit;
+  }
+}
+
+$result = exec_sql("
   SELECT rt.roster_type, ft.fieldtypeID, ft.fieldname, ft.fieldlabel, ft.fielddescription, rf.roster_fieldtype, ft.field_external_table, rf.roster_order
   FROM ros_rosters rt
   JOIN ros_roster_fields rf ON (rf.rosterID = rt.rosterID)
@@ -62,38 +77,36 @@ AND c.character_name IS NOT NULL
 ORDER BY character_name";
 
 // Get all the characters in the roster
-$result = $conn->query($qryselect);
+$result = exec_sql($qryselect);
 
-if ($result) {
-    // Build json by hand because it didn't work in one go for some reason
-    header('Content-Type: application/json');
-    echo "{\"rosters\":".json_encode($rostertypes).",\n\"people\":[";
-    $comma = "";
-    while ($row = $result->fetch_assoc()) {
-        $row = array_filter($row, function($value) { return $value !== null; });
-        echo "${comma}{";
-        $subcomma = "";
-        foreach ($row as $key => $value) {
-            $valarr = json_decode($value);
-            if (is_array($valarr)) {
-                if (count($valarr) == 0) {
-                    $value = "null";
-                } elseif (count($valarr) == 1) {
-                    $value = json_encode($valarr[0]);
-                }
+// Build json by hand because it didn't work in one go for some reason
+header('Content-Type: application/json');
+header("Cache-Control: no-cache, must-revalidate");
+header("Pragma: no-cache");
+header("Etag: \"${etag}\"");
+echo "{\"rosters\":".json_encode($rostertypes).",\n\"people\":[";
+$comma = "";
+while ($row = $result->fetch_assoc()) {
+    $row = array_filter($row, function($value) { return $value !== null; });
+    echo "${comma}{";
+    $subcomma = "";
+    foreach ($row as $key => $value) {
+        $valarr = json_decode($value);
+        if (is_array($valarr)) {
+            if (count($valarr) == 0) {
+                $value = "null";
+            } elseif (count($valarr) == 1) {
+                $value = json_encode($valarr[0]);
             }
-            echo $subcomma.json_encode($key).":${value}";
-            $subcomma = ",\n";
         }
-        echo "}";
-        $comma = ",\n";
+        echo $subcomma.json_encode($key).":${value}";
+        $subcomma = ",\n";
     }
-    // echo "]}";
-    echo "],\n\"selectquery\":".json_encode($qryselect)."}";
-} else {
-    echo "SQL: ${qryselect}";
-    die("SQL failure".$conn->error);
+    echo "}";
+    $comma = ",\n";
 }
+// echo "]}";
+echo "],\n\"selectquery\":".json_encode($qryselect)."}";
 
 $conn->close();
 ?> 
