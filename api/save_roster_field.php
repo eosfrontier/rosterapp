@@ -55,8 +55,9 @@ while ($row = $result->fetch_assoc()) {
 if ($valchanged) {
     // We needed the non-escaped value before, but now we need the escaped value
     $newvalueesc = "'".$conn->real_escape_string($newvalue)."'";
-    $oldvalueesc = $conn->real_escape_string($oldvalue);
+    $oldvalueesc = "'".$conn->real_escape_string($oldvalue)."'";
     if ($newvalue === null) { $newvalueesc = 'NULL'; }
+    if ($oldvalue === null) { $oldvalueesc = 'NULL'; }
 
     exec_sql("
         INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldvalueID, fieldvalue)
@@ -65,7 +66,7 @@ if ($valchanged) {
                       FROM ros_fieldvalues
                       WHERE fieldtypeID = ${fieldtypeID}
                       AND characterID = ${characterID}
-                      AND fieldvalue = '${oldvalueesc}' ) workaround),
+                      AND fieldvalue = ${oldvalueesc} ) workaround),
                 ${newvalueesc})
     ");
 }

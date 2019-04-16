@@ -84,7 +84,7 @@ function roster_entry(entry, doedit)
 {
     if (!doedit) {
         for (var f in skill_fields) {
-            if (!entry[f]) {
+            if (entry[f] == null) {
                 return
             }
         }
