@@ -24,7 +24,7 @@ if (strcasecmp($contentType, 'application/x-www-form-urlencoded') == 0){
     $oldvalue = $postcontent["oldvalue"];
     $newvalue = $postcontent["newvalue"];
 } else {
-    throw new Exception("Unrecognized content type: ${contentType}");
+    throw new Exception("Unsupported content type: ${contentType}");
 }
 
 require_once 'db_sql.php';
