@@ -1,3 +1,18 @@
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/roster/service-worker.js', {
+    scope: '/roster/'
+  }).then(function(reg) {
+    if (reg.installing) {
+      console.log('SW installing')
+    } else if (reg.waiting) {
+      console.log('SW installer')
+    } else if (reg.active) {
+      console.log('SW active')
+    }
+  }).catch(function(err) {
+    console.error('SW registration failed: '+err)
+  })
+}
 $(load)
 
 var gRosters
