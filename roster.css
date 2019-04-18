@@ -215,7 +215,7 @@ body {
     box-shadow: 0px 0px 8px #10c6de;
     min-height: 120px;
     min-width: 400px;
-    background-color: #112244;
+    background-color: #112233;
     overflow: hidden;
 }
 
@@ -542,6 +542,32 @@ body.admin .roster-entry.disabled {
     background-color: #601710;
 }
 
+/*
+.roster-entry.faction-aquila,
+.search-person.faction-aquila {
+    background-color: #112233;
+}
+
+.roster-entry.faction-dugo,
+.search-person.faction-dugo {
+    background-color: #331122;
+}
+
+.roster-entry.faction-ekanesh,
+.search-person.faction-ekanesh {
+    background-color: #113322;
+}
+
+.roster-entry.faction-pendzal,
+.search-person.faction-pendzal {
+    background-color: #2a3311;
+}
+
+.roster-entry.faction-sona,
+.search-person.faction-sona {
+    background-color: #2c2233;
+}
+*/
 
 .add-popup {
     display: none;
@@ -572,6 +598,8 @@ body.admin .roster-entry.disabled {
     border-bottom: 1px solid #116466;
     background: linear-gradient(178deg, #116466, #111111);
     display: flex;
+    z-index: 1;
+    position: relative;
 }
 
 #add-field-popup .popup-header .caption {
@@ -611,25 +639,26 @@ body.admin .roster-entry.disabled {
 
 .popup-person-list {
     position: absolute;
-    top: 30px;
+    top: 35px;
     bottom: 0px;
     overflow-y: auto;
     overflow-x: hidden;
     margin: 0;
+    width: calc(100% - 3px);
 }
 
 .popup-field-list {
     position: absolute;
-    top: 30px;
+    top: 35px;
     bottom: 0px;
     overflow-y: auto;
     overflow-x: hidden;
     margin: 0;
-    width: 100%;
+    width: calc(100% - 3px);
 }
 
 #search-person-list {
-    margin: 10px 2px 5px 5px;
+    margin: 15px 5px 15px 5px;
 }
 
 .search-person {
