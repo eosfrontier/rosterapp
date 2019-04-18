@@ -14,6 +14,7 @@ self.addEventListener('fetch', function(e) {
 function init_cache() {
   return caches.open('test-cache').then(function(c) {
     return c.addAll([
+      './ext/',
       './roster.js',
       './index.html',
       './roster.css',
