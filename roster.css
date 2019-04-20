@@ -585,7 +585,7 @@ body.admin .roster-entry.disabled {
     padding: 0;
     overflow: hidden; 
     border-radius: 20px;
-    box-shadow: 0 0 5px #111;
+    box-shadow: 0 0 0 100vw rgba(0,30,40,0.8);
 }
 
 .add-popup.visible {
