@@ -2,8 +2,6 @@ $(load)
 
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
-var psb_main
-var psb_search
 
 function load()
 {
@@ -31,9 +29,6 @@ function load()
     $(document).click(hide_popups)
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
-
-    psb_main = new PerfectScrollbar('#main-body', { })
-    psb_search = new PerfectScrollbar('.popup-field-list', { })
 }
 
 function fill_roster_list(roster_list)
@@ -54,7 +49,6 @@ function fill_roster_list(roster_list)
         }, true))
     $('#headermenu-list').html(mhtml.join(''))
     $('#roster-list').html(html.join(''))
-    setTimeout(function() { psb_main.update() }, 100)
     ftlist = []
     for (var f in field_types) {
         ftlist.push(f)
@@ -66,7 +60,6 @@ function fill_roster_list(roster_list)
         html.push('<div class="search-field" data-fieldname="',ft,'" title="',ft,'">',field_types[ft].fieldlabel,'</div>')
     }
     $('#search-field-list').html(html.join(''))
-    setTimeout(function() { psb_search.update() }, 100)
 }
 
 function set_roster_type()
@@ -315,7 +308,6 @@ function choose_skill_list()
         setTimeout(function() { $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"] input').focus().select() }, 50)
     }
     setTimeout(function() { $('#add-field-popup').addClass('visible') }, 0)
-    setTimeout(function() { psb_search.update() }, 100)
 }
 
 function select_field_entry()

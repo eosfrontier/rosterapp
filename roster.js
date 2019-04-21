@@ -15,8 +15,6 @@ if ('serviceWorker' in navigator) {
 }
 $(load)
 
-var psb_main
-var psb_search
 var gRosters
 var roster_type
 var person_fields
@@ -58,9 +56,6 @@ function load()
 
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
-
-    psb_main = new PerfectScrollbar('#main-body', { })
-    psb_search = new PerfectScrollbar('.popup-person-list', { })
 }
 
 function fill_roster_types(rosters)
@@ -193,7 +188,6 @@ function fill_roster()
     }
     html.push(roster_entry_new())
     $('#roster-list').html(html.join(''))
-    setTimeout(function() { psb_main.update() }, 100)
 }
 
 function fill_searchlist()
@@ -214,7 +208,6 @@ function fill_searchlist()
     }
 
     $('#search-person-list').html(html.join(''))
-    setTimeout(function() { psb_search.update() }, 100)
 }
 
 function search_new_person()
@@ -232,7 +225,6 @@ function search_new_person()
         $('#add-person-popup').addClass('visible')
         $('#search-input').focus()
         }, 0)
-    setTimeout(function() { psb_search.update() }, 100)
 }
 
 function hide_popups()
@@ -251,7 +243,6 @@ function add_new_person()
         newentry.find('input').each(save_person_field)
         newentry.find('input').first().focus().select()
     }
-    setTimeout(function() { psb_main.update() }, 100)
 }
 
 function show_new_person(roster)
@@ -350,7 +341,6 @@ function input_searchlist()
             })
         }
     }
-    setTimeout(function() { psb_search.update() }, 100)
 }
 
 function keypress_searchlist(e)
