@@ -22,8 +22,11 @@ function load()
 
     $('#add-field-popup').click(function(e) { e.stopPropagation() })
     $('#add-field-popup').on('click','.search-field:not(.exists)', select_field_entry)
-    $('#add-field-popup').on('click','.search-field-edit', edit_search_field)
-    $('#add-field-popup').on('keypress','.search-field input',  function(e) { if (e.which == 13) { $(this).click() }})
+    $('#add-field-popup').on('click','.search-field:not(.exists) .search-field-edit', edit_search_field)
+    $('#add-field-popup').on('keypress','.search-field input',  function(e) { if (e.which == 13) { $(this).blur().click() }})
+    $('#add-field-popup').on('keypress','.search-field-new input',  function(e) { if (e.which == 13) { add_new_search_field.call(this) }})
+
+    $('#add-field-popup').on('click','.search-field-new-button', add_new_search_field)
 
     $(document).click(hide_popups)
     $('.menu-button').click(show_menu)
@@ -147,15 +150,32 @@ function hide_popups(e)
     }
 }
 
+function capitalize(text)
+{
+    return text.charAt(0).toUpperCase()+text.slice(1)
+}
+
 function start_new_roster()
 {
-    if ($('#roster-list .roster-entry.editing').length > 0) {
-        return
-    }
     var re = $(this).closest('.roster-entry')
     var rtfield = re.find('.roster-field-roster_type .field-text')
     var typeval = rtfield.find('input').val().toLowerCase()
     if (typeval == "") {
+        return
+    }
+    var ctypeval = capitalize(typeval)
+    if (re.hasClass('editing')) {
+        var oldtype = re.attr('data-roster-type')
+        if (oldtype) {
+            re.attr('data-roster-type', typeval)
+            $('.roster-entry [data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').text(ctypeval+' Skill')
+            $('.roster-entry [data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').text(ctypeval+' Interest')
+            $('.search-field[data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').find('input[type="text"]').val(ctypeval+' Skill')
+            $('.search-field[data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').find('input[type="text"]').val(ctypeval+' Interest')
+        }
+        return
+    }
+    if ($('#roster-list .roster-entry.editing').length > 0) {
         return
     }
     $('.duplicate').removeClass('duplicate')
@@ -166,6 +186,7 @@ function start_new_roster()
         return
     }
     if (re.hasClass('new-roster')) {
+        re.attr('data-roster-type',typeval)
         re.find('.roster-button-edit').removeClass('roster-button-edit').addClass('roster-button-undo')
         $('#roster-list .roster-button-edit').addClass('disabled')
         $('#roster-list .roster-entry').addClass('disabled')
@@ -174,7 +195,6 @@ function start_new_roster()
         var newinput = $('<input type="text" placeholder="Description of roster">')
         re.find('.roster-field-roster_description').html(newinput)
         newinput.focus()
-        var ctypeval = typeval.charAt(0).toUpperCase()+typeval.slice(1)
         $('.search-field-default-skill').attr('data-fieldname', typeval+'_skill').find('input').val(ctypeval+' Skill')
         $('.search-field-default-interest').attr('data-fieldname', typeval+'_interest').find('input').val(ctypeval+' Interest')
         re.find('.roster-new-field').before(
@@ -288,6 +308,12 @@ function choose_skill_list()
         if ($(this).hasClass('selecting')) { cls = 'selected' }
         $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"]').addClass(cls)
     })
+    var fieldname = $(this).attr('data-fieldname')
+    $('#add-field-popup .search-field input').attr('readonly',true)
+    if (fieldname) {
+        $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"] input').attr('readonly',false)
+        setTimeout(function() { $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"] input').focus().select() }, 50)
+    }
     setTimeout(function() { $('#add-field-popup').addClass('visible') }, 0)
     setTimeout(function() { psb_search.update() }, 100)
 }
@@ -304,7 +330,15 @@ function select_field_entry()
         var input = $(this).find('input')
         var label
         if (input.length > 0) {
+            if (input.is(':focus') && !input.attr('readonly')) {
+                return
+            }
             label = input.val()
+            var newfieldname = labeltoname(label)
+            if (newfieldname && newfieldname != fn) {
+                $('[data-fieldname="'+fn+'"]').attr('data-fieldname',newfieldname)
+                fn = newfieldname
+            }
         } else {
             label = $(this).text()
         }
@@ -331,9 +365,28 @@ function select_field_entry()
     hide_popups()
 }
 
+function labeltoname(label)
+{
+    return label.replace(/[^A-Za-z0-9]+/, '_').toLowerCase()
+}
+
+function add_new_search_field()
+{
+    var tdiv = $(this).closest('.search-field-new')
+    var input = tdiv.find('input[type="text"]')
+    var fieldlabel = input.val()
+    if (!fieldlabel) { return }
+    var fieldname = labeltoname(fieldlabel)
+    var newentry = $('<div class="search-field search-field-new" data-fieldname="'+fieldname+'">'+
+        '<input type="text" placeholder="Description" value="'+fieldlabel+'">'+
+        '<div class="search-field-edit">&#61504;</div>').insertBefore(tdiv)
+    newentry.click()
+    input.val('')
+}
+
 function edit_search_field(e)
 {
-    $(this).closest('.search-field').find('input').focus().select()
+    $(this).closest('.search-field').find('input').attr('readonly',false).focus().select()
     e.stopPropagation()
 }
 
