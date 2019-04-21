@@ -167,6 +167,10 @@ function fill_roster()
     skill_fields = {}
     editable_fields = {}
     var roster = gRosters.rosters[roster_type]
+    if (!roster) {
+        $('.menu-button').addClass('visible') 
+        return
+    }
     for (var f = 0; f < roster.length; f++) {
         var rf = roster[f]
         if (rf.roster_order != 0) {
