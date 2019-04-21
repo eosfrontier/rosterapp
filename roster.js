@@ -56,6 +56,7 @@ function load()
 
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
+    $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
 }
 
 function fill_roster_types(rosters)
@@ -85,7 +86,7 @@ function set_roster_type()
 
 function show_menu(e)
 {
-    $(this).addClass('visible')
+    $(this).toggleClass('visible')
     e.stopPropagation()
 }
 
@@ -222,15 +223,20 @@ function search_new_person()
         }
     })
     setTimeout(function() {
+        if (!$('#add-person-popup').hasClass('visible')) { window.location.hash = '#select' }
         $('#add-person-popup').addClass('visible')
         $('#search-input').focus()
         }, 0)
 }
 
-function hide_popups()
+function hide_popups(e)
 {
-    $('.menu-button').removeClass('visible')
-    $('.add-popup').removeClass('visible')
+    if (!e || e.which == 1) {
+        var doback = $('.add-popup').hasClass('visible')
+        $('.menu-button').removeClass('visible')
+        $('.add-popup').removeClass('visible')
+        if (doback) { window.history.back() }
+    }
 }
 
 function add_new_person()
@@ -374,7 +380,6 @@ function save_person_field()
     if (oldvalue != newvalue || field.hasClass('initial')) {
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
-        console.log(characterID, fieldname, oldvalue, newvalue, this)
         if (characterID && fieldname) {
             $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
         }

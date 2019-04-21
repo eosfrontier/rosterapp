@@ -29,6 +29,7 @@ function load()
     $(document).click(hide_popups)
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
+    $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
 }
 
 function fill_roster_list(roster_list)
@@ -138,8 +139,10 @@ function roster_entry(entry, newroster)
 function hide_popups(e)
 {
     if (!e || e.which == 1) {
+        var doback = $('.add-popup').hasClass('visible')
         $('.menu-button').removeClass('visible')
         $('.add-popup').removeClass('visible')
+        if (doback) { window.history.back() }
     }
 }
 
@@ -307,7 +310,10 @@ function choose_skill_list()
         $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"] input').attr('readonly',false)
         setTimeout(function() { $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"] input').focus().select() }, 50)
     }
-    setTimeout(function() { $('#add-field-popup').addClass('visible') }, 0)
+    setTimeout(function() {
+        if (!$('#add-field-popup').hasClass('visible')) { window.location.hash = '#select' }
+        $('#add-field-popup').addClass('visible')
+        }, 0)
 }
 
 function select_field_entry()

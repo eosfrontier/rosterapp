@@ -190,8 +190,10 @@ body {
     padding: 0;
     overflow: hidden; 
     overflow-y: auto;
-    border-radius: 20px;
+    border-radius: 20px 0 0 20px;
     box-shadow: 0 0 5px #111;
+    scrollbar-color: #114852 transparent;
+    scrollbar-width: thin;
 }
 
 
@@ -637,16 +639,7 @@ body.admin .roster-entry.disabled {
     color: inherit;
 }
 
-.popup-person-list {
-    position: absolute;
-    top: 35px;
-    bottom: 0px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin: 0;
-    width: calc(100% - 3px);
-}
-
+.popup-person-list,
 .popup-field-list {
     position: absolute;
     top: 35px;
@@ -655,6 +648,8 @@ body.admin .roster-entry.disabled {
     overflow-x: hidden;
     margin: 0;
     width: calc(100% - 3px);
+    scrollbar-color: #114852 transparent;
+    scrollbar-width: thin;
 }
 
 #search-person-list {
@@ -838,4 +833,15 @@ body.admin .roster-entry.disabled {
     #main-body {
         width: 1320px;
     }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 15px;
+}
+::-webkit-scrollbar-track-piece {
+    background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #114852;
 }
