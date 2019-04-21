@@ -70,6 +70,8 @@ function fill_roster_types(rosters)
     fill_searchlist()
     if (roster_type) {
         fill_roster()
+    } else {
+        $('.menu-button').addClass('visible') 
     }
 }
 
