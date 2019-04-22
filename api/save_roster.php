@@ -53,12 +53,13 @@ try {
             }
             $roster_order = $conn->real_escape_string($matches[1]);
             $roster_fieldtype = $conn->real_escape_string($matches[2]);
-            if ($roster_fieldtype > 0) {
-                $mandatory_count++;
-            }
-            $result = exec_sql("SELECT fieldtypeID FROM ros_fieldtypes WHERE fieldname='${fieldname}'");
+            $result = exec_sql("SELECT fieldtypeID, field_external_table FROM ros_fieldtypes WHERE fieldname='${fieldname}'");
             if ($result->num_rows != 1) { throw new Exception("Unknown field '${fieldname}'!"); }
             $fieldtypeID = $result->fetch_object()->fieldtypeID;
+            $field_external_table = $result->fetch_object()->field_external_table;
+            if ($roster_fieldtype > 0 && $roster_order > 0 && !$field_external_table) {
+                $mandatory_count++;
+            }
             array_push($roster_fields, "$fieldtypeID");
             exec_sql("
                 INSERT INTO ros_roster_fields (rosterID, fieldtypeID, roster_order, roster_fieldtype)
