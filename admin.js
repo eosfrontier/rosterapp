@@ -18,6 +18,7 @@ function load()
 
     $('#roster-list').on('click','.new-roster:not(.editing)', function() { $(this).find('.roster-field-roster_type input').focus().select() })
     $('#roster-list').on('click','.roster-field-radiobutton', set_field_mandatory)
+    $('#roster-list').on('dragstart','.roster-field', drag_field)
 
     $('#add-field-popup').click(function(e) { e.stopPropagation() })
     $('#add-field-popup').on('click','.search-field:not(.exists)', select_field_entry)
@@ -31,6 +32,10 @@ function load()
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
+}
+
+function drag_field(e)
+{
 }
 
 function fill_roster_list(roster_list)
@@ -226,6 +231,36 @@ function edit_roster()
         re.find('[data-fieldname]').addClass('roster-field')
         re.removeClass('disabled').addClass('editing')
         $('#roster-list .roster-entry.disabled input').attr('disabled',true)
+        re.sortable({
+            items: '.roster-field:not(.roster-new-field)',
+            cursor: 'move',
+            helper: 'clone',
+            appendTo: 'body',
+            revert: 250,
+            out: function(e, ui) {
+                if (ui.helper) {
+                    ui.helper.addClass('field-remove')
+                    ui.item.addClass('field-remove')
+                }
+            },
+            over: function(e, ui) {
+                if (ui.helper) {
+                    ui.helper.removeClass('field-remove')
+                    ui.item.removeClass('field-remove')
+                }
+            },
+            stop: function(e, ui) {
+                if (ui.item.hasClass('field-remove')) {
+                    if (ui.helper) { ui.helper.addClass('field-remove-now') }
+                    ui.item.remove()
+                }
+            },
+            start: function(e, ui) {
+                ui.helper.one('mouseup', function() {
+                    $(this).addClass('field-remove-now')
+                })
+            }
+        })
     }
 }
 
@@ -312,7 +347,6 @@ function choose_skill_list()
     $(this).addClass('selecting')
     $('#add-field-popup .search-field').removeClass('exists selected')
     var re = $(this).closest('.roster-entry')
-    $('#search-field-mandatory').prop('checked', $(this).hasClass('field-mandatory'))
     re.find('.roster-field[data-fieldname]').each(function() {
         var fieldname = $(this).attr('data-fieldname')
         var cls = 'exists'
@@ -372,7 +406,8 @@ function select_field_entry()
                     cls += ' field-mandatory'
                 }
             }
-            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'"><div class="roster-field-radiobutton"></div><span>'+htmlize(label)+'</span></div>')
+            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'">'+
+                '<div class="roster-field-radiobutton"></div><span>'+htmlize(label)+'</span></div>')
         } else {
             selecting.find('span').text(label)
             selecting.attr('data-fieldname', fn)

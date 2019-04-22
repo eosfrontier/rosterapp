@@ -55,8 +55,9 @@ try {
             $roster_fieldtype = $conn->real_escape_string($matches[2]);
             $result = exec_sql("SELECT fieldtypeID, field_external_table FROM ros_fieldtypes WHERE fieldname='${fieldname}'");
             if ($result->num_rows != 1) { throw new Exception("Unknown field '${fieldname}'!"); }
-            $fieldtypeID = $result->fetch_object()->fieldtypeID;
-            $field_external_table = $result->fetch_object()->field_external_table;
+            $row = $result->fetch_assoc();
+            $fieldtypeID = $row["fieldtypeID"];
+            $field_external_table = $row["field_external_table"];
             if ($roster_fieldtype > 0 && $roster_order > 0 && !$field_external_table) {
                 $mandatory_count++;
             }
