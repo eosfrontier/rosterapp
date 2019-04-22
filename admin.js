@@ -207,6 +207,7 @@ function start_new_roster()
             '<div class="roster-field-radiobutton"></div><span>&lt;'+ctypeval+' Skill&gt;</span></div>'+
             '<div class="roster-field-'+typeval+'_interest roster-field field-mandatory field-normal" data-fieldname="'+typeval+'_interest">'+
             '<div class="roster-field-radiobutton"></div><span>&lt;'+ctypeval+' Interest&gt;</span></div>')
+        set_sortable(re)
     }
 }
 
@@ -231,37 +232,43 @@ function edit_roster()
         re.find('[data-fieldname]').addClass('roster-field')
         re.removeClass('disabled').addClass('editing')
         $('#roster-list .roster-entry.disabled input').attr('disabled',true)
-        re.sortable({
-            items: '.roster-field:not(.roster-new-field)',
-            cursor: 'move',
-            helper: 'clone',
-            appendTo: 'body',
-            revert: 250,
-            out: function(e, ui) {
-                if (ui.helper) {
-                    ui.helper.addClass('field-remove')
-                    ui.item.addClass('field-remove')
-                }
-            },
-            over: function(e, ui) {
-                if (ui.helper) {
-                    ui.helper.removeClass('field-remove')
-                    ui.item.removeClass('field-remove')
-                }
-            },
-            stop: function(e, ui) {
-                if (ui.item.hasClass('field-remove')) {
-                    if (ui.helper) { ui.helper.addClass('field-remove-now') }
-                    ui.item.remove()
-                }
-            },
-            start: function(e, ui) {
-                ui.helper.one('mouseup', function() {
-                    $(this).addClass('field-remove-now')
-                })
-            }
-        })
+        set_sortable(re)
     }
+}
+
+
+function set_sortable(re)
+{
+    re.sortable({
+        items: '.roster-field:not(.roster-new-field)',
+        cursor: 'move',
+        helper: 'clone',
+        appendTo: 'body',
+        revert: 250,
+        out: function(e, ui) {
+            if (ui.helper) {
+                ui.helper.addClass('field-remove')
+                ui.item.addClass('field-remove')
+            }
+        },
+        over: function(e, ui) {
+            if (ui.helper) {
+                ui.helper.removeClass('field-remove')
+                ui.item.removeClass('field-remove')
+            }
+        },
+        stop: function(e, ui) {
+            if (ui.item.hasClass('field-remove')) {
+                if (ui.helper) { ui.helper.addClass('field-remove-now') }
+                ui.item.remove()
+            }
+        },
+        start: function(e, ui) {
+            ui.helper.one('mouseup', function() {
+                $(this).addClass('field-remove-now')
+            })
+        }
+    })
 }
 
 function undo_roster()
