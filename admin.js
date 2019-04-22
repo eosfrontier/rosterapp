@@ -168,8 +168,8 @@ function start_new_roster()
         var oldtype = re.attr('data-roster-type')
         if (oldtype) {
             re.attr('data-roster-type', typeval)
-            $('.roster-entry [data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').text(ctypeval+' Skill')
-            $('.roster-entry [data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').text(ctypeval+' Interest')
+            $('.roster-entry [data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').find('span').text(ctypeval+' Skill')
+            $('.roster-entry [data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').find('span').text(ctypeval+' Interest')
             $('.search-field[data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').find('input[type="text"]').val(ctypeval+' Skill')
             $('.search-field[data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').find('input[type="text"]').val(ctypeval+' Interest')
         }
@@ -198,8 +198,10 @@ function start_new_roster()
         $('.search-field-default-skill').attr('data-fieldname', typeval+'_skill').find('input').val(ctypeval+' Skill')
         $('.search-field-default-interest').attr('data-fieldname', typeval+'_interest').find('input').val(ctypeval+' Interest')
         re.find('.roster-new-field').before(
-            '<div class="roster-field-'+typeval+'_skill roster-field" data-fieldname="'+typeval+'_skill">['+ctypeval+' Skill]</div>'+
-            '<div class="roster-field-'+typeval+'_interest roster-field field-mandatory" data-fieldname="'+typeval+'_interest">&lt;'+ctypeval+' Interest&gt;</div>')
+            '<div class="roster-field-'+typeval+'_skill roster-field field-normal" data-fieldname="'+typeval+'_skill">'+
+            '<div class="roster-field-radiobutton"></div><span>&lt;'+ctypeval+' Skill&gt;</span></div>'+
+            '<div class="roster-field-'+typeval+'_interest roster-field field-mandatory field-normal" data-fieldname="'+typeval+'_interest">'+
+            '<div class="roster-field-radiobutton"></div><span>&lt;'+ctypeval+' Interest&gt;</span></div>')
     }
 }
 
@@ -335,9 +337,14 @@ function select_field_entry()
     var selecting = $('#roster-list .roster-field.selecting')
     if (entry.hasClass('roster-field-empty')) {
         if (!selecting.hasClass('roster-new-field')) {
+            var re = selecting.closest('.roster-entry')
             selecting.remove()
+            if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
+                re.find('.roster-field.field-normal').first().addClass('field-mandatory')
+            }
         }
     } else {
+        var re = selecting.closest('.roster-entry')
         var fn = entry.attr('data-fieldname')
         var input = entry.find('input')
         var label
@@ -354,26 +361,28 @@ function select_field_entry()
         } else {
             label = entry.text()
         }
-        var mandatory =$('#search-field-mandatory').prop('checked')
         label = '<'+label+'>'
         if (selecting.hasClass('roster-new-field')) {
             var cls = ''
-            if (mandatory) { cls += ' field-mandatory' }
-            if (entry.hasClass('search-field-external')) { cls += ' field-external' }
-            else { cls += ' field-normal' }
-            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'"><div class="roster-field-radiobutton"></div>'+htmlize(label)+'</div>')
-        } else {
-            selecting.text(label)
-            selecting.attr('data-fieldname', fn)
-            if (mandatory) {
-                selecting.addClass('field-mandatory')
-            } else {
-                selecting.removeClass('field-mandatory')
-            }
             if (entry.hasClass('search-field-external')) {
-                selecting.addClass('field-external')
+                cls += ' field-external'
             } else {
-                selecting.removeClass('field-external')
+                cls += ' field-normal'
+                if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
+                    cls += ' field-mandatory'
+                }
+            }
+            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'"><div class="roster-field-radiobutton"></div><span>'+htmlize(label)+'</span></div>')
+        } else {
+            selecting.find('span').text(label)
+            selecting.attr('data-fieldname', fn)
+            if (entry.hasClass('search-field-external')) {
+                selecting.addClass('field-external').removeClass('field-normal')
+            } else {
+                selecting.removeClass('field-external').addClass('field-normal')
+                if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
+                    selecting.addClass('field-mandatory')
+                }
             }
         }
     }
