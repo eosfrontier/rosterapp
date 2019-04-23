@@ -919,6 +919,40 @@ body.admin .roster-entry.disabled {
         top: 1vw;
         bottom: 1vw;
     }
+    .roster-entry > .roster-field-roster_type {
+        width: 20vw;
+        height: 24vw;
+    }
+    .roster-field-roster_type .field-box {
+        border-radius: 4vw;
+    }
+    .field-box .field-text {
+        font-size: 3.4vw;
+    }
+    .field-box .field-text input[type="text"] {
+        font-size: 3vw;
+        padding: 0;
+    }
+    .menu-content .menu-item {
+        font-size: 4vw;
+    }
+    .menu-content .menu-item.header-menu-admin {
+        font-size: 3vw;
+    }
+    .roster-buttons .button {
+        width: 4vw;
+        height: 4vw;
+        font-size: 3.5vw;
+        margin: 3vw 4vw 0 3vw;
+    }
+    .roster-entry > .roster-buttons {
+    }
+    .roster-entry:not(.editing):not(.disabled):hover > .roster-buttons {
+        width: 12vw;
+    }
+    body.admin .roster-entry:not(.disabled):hover > .roster-buttons {
+        width: 12vw;
+    }
 }
 
 ::-webkit-scrollbar {
