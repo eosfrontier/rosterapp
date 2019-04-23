@@ -18,7 +18,6 @@ function load()
 
     $('#roster-list').on('click','.new-roster:not(.editing)', function() { $(this).find('.roster-field-roster_type input').focus().select() })
     $('#roster-list').on('click','.roster-field-radiobutton', set_field_mandatory)
-    $('#roster-list').on('dragstart','.roster-field', drag_field)
 
     $('#add-field-popup').click(function(e) { e.stopPropagation() })
     $('#add-field-popup').on('click','.search-field:not(.exists)', select_field_entry)
@@ -32,10 +31,6 @@ function load()
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
-}
-
-function drag_field(e)
-{
 }
 
 function fill_roster_list(roster_list)
