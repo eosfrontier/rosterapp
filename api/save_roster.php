@@ -2,10 +2,11 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1); 
 
-require_once 'db_sql.php';
+require_once 'getcharid.php';
 
 $roster_type = $conn->real_escape_string($_POST["roster_type"]);
 $roster_description = $conn->real_escape_string($_POST["roster_description"]);
+$mod_characterID = $conn->real_escape_string($user_characterID);
 $rosterID = null;
 if (isset($_POST["rosterID"])) {
     $rosterID = $conn->real_escape_string($_POST["rosterID"]);
@@ -18,12 +19,13 @@ try {
             UPDATE ros_rosters
             SET roster_type='${roster_type}'
             , roster_description='${roster_description}'
+            , mod_characterid=${mod_characterID}
             WHERE rosterID=${rosterID}
         ");
     } else {
         exec_sql("
-            INSERT INTO ros_rosters (roster_type, roster_description)
-            VALUES ('${roster_type}','${roster_description}')
+            INSERT INTO ros_rosters (roster_type, roster_description, mod_characterID)
+            VALUES ('${roster_type}','${roster_description}',$mod_characterID)
         ");
         $rosterID = $conn->insert_id;
     }
@@ -63,11 +65,12 @@ try {
             }
             array_push($roster_fields, "$fieldtypeID");
             exec_sql("
-                INSERT INTO ros_roster_fields (rosterID, fieldtypeID, roster_order, roster_fieldtype)
-                VALUES (${rosterID}, ${fieldtypeID}, ${roster_order}, ${roster_fieldtype})
+                INSERT INTO ros_roster_fields (rosterID, fieldtypeID, roster_order, roster_fieldtype, mod_characterID)
+                VALUES (${rosterID}, ${fieldtypeID}, ${roster_order}, ${roster_fieldtype}, ${mod_characterID})
                 ON DUPLICATE KEY UPDATE
                 roster_order=${roster_order},
-                roster_fieldtype=${roster_fieldtype}
+                roster_fieldtype=${roster_fieldtype},
+                mod_characterID=${mod_characterID}
             ");
         }
     }

@@ -27,7 +27,9 @@ if (strcasecmp($contentType, 'application/x-www-form-urlencoded') == 0){
     throw new Exception("Unsupported content type: ${contentType}");
 }
 
-require_once 'db_sql.php';
+require_once 'getcharid.php';
+
+$mod_characterID = $conn->real_escape_string($user_characterID);
 
 $characterID = $conn->real_escape_string($characterID);
 $result = exec_sql("SELECT fieldtypeID FROM ros_fieldtypes WHERE fieldname='".$conn->real_escape_string($fieldname)."'");
@@ -60,14 +62,14 @@ if ($valchanged) {
     if ($oldvalue === null) { $oldvalueesc = 'NULL'; }
 
     exec_sql("
-        INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldvalueID, fieldvalue)
+        INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldvalueID, fieldvalue, mod_characterID)
         VALUES (${fieldtypeID}, ${characterID},
                 ( SELECT prev_fieldvalueID FROM (SELECT MAX(fieldvalueID) AS prev_fieldvalueID
                       FROM ros_fieldvalues
                       WHERE fieldtypeID = ${fieldtypeID}
                       AND characterID = ${characterID}
                       AND fieldvalue = ${oldvalueesc} ) workaround),
-                ${newvalueesc})
+                ${newvalueesc}, ${mod_characterID})
     ");
 }
 
