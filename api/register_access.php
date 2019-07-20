@@ -22,7 +22,7 @@ require_once 'db_sql.php'
 
 $valueesc = "'".$conn->real_escape_string($cardid)." - ".$conn->real_escape_string($timestamp)."'";
 
-$result = exec_sql("
+exec_sql("
     INSERT INTO ros_fieldvalues (fieldtypeID, characterID, prev_fieldvalueID, fieldvalue, mod_characterID)
     VALUES (7777, 0, 0, '${valueesc}', 0)
     ");
