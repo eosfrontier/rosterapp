@@ -20,7 +20,7 @@ var roster_type
 var person_fields
 var skill_fields
 var extra_fields
-var special_fields = { character_image:'<img src="https://www.eosfrontier.space/eos_douane/images/mugs/{{characterID}}.jpg">' }
+var special_fields = { character_image:'<div><img src="https://www.eosfrontier.space/eos_douane/images/mugs/{{characterID}}.jpg"></div>' }
 var special_fieldsnew = { character_image:'<div class="image-add-new">+</div>' }
 var editable_fields
 var search_value = ''

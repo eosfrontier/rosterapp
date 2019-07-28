@@ -6,10 +6,13 @@ require_once 'db_sql.php';
  
 if(strcasecmp($_SERVER['REQUEST_METHOD'], 'GET') == 0){
     echo "<html><body><h2>Access log:</h2>";
-    $result = exec_sql("SELECT fieldvalue FROM ros_fieldvalues WHERE fieldtypeID=7777");
+    $result = exec_sql("
+    SELECT fieldvalue, character_name, card_id FROM ros_fieldvalues
+    LEFT OUTER JOIN ecc_characters ON (ecc_characters.card_id like concat(substring(ros_fieldvalues.fieldvalue,1,8),'%'))
+    WHERE fieldtypeID=7777
+    ");
     while ($row = $result->fetch_assoc()) {
-        $value = $row["fieldvalue"];
-        echo "<p>Access: ${value}</p>";
+        echo "<p>Access: ${row['fieldvalue']} ${row['character_name']} ${row['card_id']}</p>";
     }
     echo "</body></html>";
     $conn->close();
