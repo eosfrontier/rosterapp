@@ -184,7 +184,8 @@ body {
     flex: auto;
     position: relative;
     color: #D9B08C;
-    background: #262626;
+    // background: #262626;
+    background: #112233;
     border: 2px solid #116466;
     margin: auto;
     padding: 0;
@@ -201,7 +202,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     align-items: start;
-    justify-content: center;
+    justify-content: start;
 }
 
 .roster-entry {
@@ -209,18 +210,35 @@ body {
     position: relative;
     display: grid;
     grid-gap: 0px;
-    grid-template-columns: 110px auto;
-    border: 1px solid #116466;
+    grid-template-columns: auto;
+    // border: 1px solid #116466;
     padding: 5px;
-    margin: 8px;
-    border-radius: 25px;
-    box-shadow: 0px 0px 8px #10c6de;
+    margin: 0px;
+    margin-bottom: 60px;
+    // border-radius: 25px;
+    // box-shadow: 0px 0px 8px #10c6de;
     min-height: 120px;
     min-width: 400px;
-    background-color: #112233;
+    // background-color: #112233;
     overflow: hidden;
+    // grid-template-rows: 35px auto;
 }
 
+.roster-entry:nth-child(odd) {
+    text-align: right;
+    grid-template-columns: 0px 290px auto;
+}
+
+.roster-entry:nth-child(even) {
+    margin: 0px;
+    margin-top: 0px;
+    grid-template-columns: 110px auto;
+    transform: translate(-60px, 95px);
+}
+
+.roster-entry:nth-child(odd) > .roster-person-character_image {
+    grid-column: 100;
+}
 .roster-entry.deleted {
     opacity: 0.3;
     background-color: #64140c;
@@ -312,6 +330,11 @@ body {
     text-shadow: 0 0 1px #000, 0 0 5px #f5a478;
 }
 
+.roster-entry > .roster-person-character_name {
+    font-weight: bold;
+    font-size: 120%;
+}
+
 .roster-entry > .roster-person-character_image {
     position: relative;
     padding: 0px;
@@ -320,9 +343,19 @@ body {
     height: 120px;
     width: calc(120px / 1.1547);
     clip-path: polygon(50% 0%, 0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%);
-    background: radial-gradient(circle at 50% 0%, #bef 5%, rgba(0,0,0,0) 10%),
+    background: 
+        radial-gradient(circle at 50% 0%, #bef 5%, rgba(0,0,0,0) 10%),
         radial-gradient(circle at 100% 75%, #bef 5%, rgba(0,0,0,0) 10%),
-        radial-gradient(circle at 0% 75%, #bef 5%, rgba(0,0,0,0) 10%);
+        radial-gradient(circle at 0% 75%, #bef 5%, rgba(0,0,0,0) 10%),
+        radial-gradient(circle at 50% 50%, #0ad 0%, #0ad 100%);
+}
+
+.roster-entry:nth-child(even) > .roster-person-character_image {
+    background: radial-gradient(circle at 50% 100%, #bef 5%, rgba(0,0,0,0) 10%),
+        radial-gradient(circle at 100% 25%, #bef 5%, rgba(0,0,0,0) 10%),
+        radial-gradient(circle at 0% 25%, #bef 5%, rgba(0,0,0,0) 10%),
+        radial-gradient(circle at 50% 50%, #0ad 0%, #0ad 100%);
+
 }
 
 .roster-entry > .roster-person-character_image::before {
@@ -358,6 +391,38 @@ body {
     transform: translate(-50%);
     max-height: 110%;
     max-width: 120%;
+}
+
+.roster-entry:nth-child(even) > div:not(.roster-person-character_image) {
+    background: linear-gradient(50deg, #aef 20px, #0ad 23px, #0ad 45px, rgba(0,0,0,0) 55px);
+    margin-bottom: 2px;
+    padding: 2px 0 1px 40px;
+}
+.roster-entry:nth-child(even) > div:not(.roster-person-character_image):not(.roster-person-character_name) {
+    transform: translate(-20px, 0);
+    clip-path: polygon(13px calc(50% + 3px), 12px 50%, 13px calc(50% - 3px), 14px calc(50% - 1px), 30px calc(50% - 1px), 40px 0%, 100% 0%, 100% 100%, 40px 100%, 30px calc(50% + 1px), 14px calc(50% + 1px));
+}
+
+.roster-entry:nth-child(even) > div:not(.roster-person-character_image)::before {
+    content: "";
+    background-color: #123;
+    position: absolute;
+    width: calc(100% - 1.1547 * 2px);
+    height: calc(100% - 2px);
+    top: 1px;
+    left: calc(1px * 1.1547);
+    clip-path: polygon(30px 50%, 40px 0%, 100% 0%, 100% 100%, 40px 100%);
+    z-index: -1;
+}
+
+.roster-entry:nth-child(even) > .roster-person-character_name {
+    transform: translate(-30px, -5px);
+    background: linear-gradient(50deg, #aef 5px, #0ad 8px, #0ad 65px, rgba(0,0,0,0) 95px) !important;
+    clip-path: polygon(10px calc(50% + 1px), 2px 100%, 0px calc(100% - 1px), 1px calc(100% - 2px), 10px calc(50% - 1px), 30px calc(50% - 1px), 40px 0%, 100% 0%, 100% 100%, 40px 100%, 30px calc(50% + 1px));
+}
+
+.roster-entry:nth-child(odd) > .roster-person-character_name {
+    transform: translate(20px);
 }
 
 .roster-entry > .roster-field-roster_type {
@@ -554,14 +619,11 @@ body.admin .roster-entry.disabled {
 .roster-field-roster_type .image-add-new,
 .roster-person-character_image .image-add-new {
     cursor: pointer;
-    box-shadow: 0px 0px 3px #10c6ae;
-    border: 1px solid #106446;
-    border-radius: 20px;
     margin: 0px;
     display: block;
-    height: 80px;
-    width: 80px;
-    padding: 10px;
+    width: 100%;
+    height: 100%;
+    padding-top: 15px;
     font-size: 50px;
     background: radial-gradient(#102420, #154860);
     color: #10a68e;
@@ -913,7 +975,7 @@ body.admin .roster-entry.disabled {
 
 @media only screen and (min-width: 1600px) {
     #main-body {
-        width: 1320px;
+        width: 900px;
     }
 }
 
