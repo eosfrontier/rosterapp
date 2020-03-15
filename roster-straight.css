@@ -184,8 +184,7 @@ body {
     flex: auto;
     position: relative;
     color: #D9B08C;
-    // background: #262626;
-    background: #112233;
+    background: #262626;
     border: 2px solid #116466;
     margin: auto;
     padding: 0;
@@ -202,7 +201,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     align-items: start;
-    justify-content: start;
+    justify-content: center;
 }
 
 .roster-entry {
@@ -210,35 +209,18 @@ body {
     position: relative;
     display: grid;
     grid-gap: 0px;
-    grid-template-columns: auto;
-    // border: 1px solid #116466;
+    grid-template-columns: 110px auto;
+    border: 1px solid #116466;
     padding: 5px;
-    margin: 0px;
-    margin-bottom: 60px;
-    // border-radius: 25px;
-    // box-shadow: 0px 0px 8px #10c6de;
+    margin: 8px;
+    border-radius: 25px;
+    box-shadow: 0px 0px 8px #10c6de;
     min-height: 120px;
     min-width: 400px;
-    // background-color: #112233;
-    // overflow: hidden;
-    // grid-template-rows: 35px auto;
+    background-color: #112233;
+    overflow: hidden;
 }
 
-.roster-entry:nth-child(odd) {
-    text-align: right;
-    grid-template-columns: 0px 290px auto;
-}
-
-.roster-entry:nth-child(even) {
-    margin: 0px;
-    margin-top: 0px;
-    grid-template-columns: 110px auto;
-    transform: translate(-60px, 95px);
-}
-
-.roster-entry:nth-child(odd) > .roster-person-character_image {
-    grid-column: 100;
-}
 .roster-entry.deleted {
     opacity: 0.3;
     background-color: #64140c;
@@ -330,33 +312,17 @@ body {
     text-shadow: 0 0 1px #000, 0 0 5px #f5a478;
 }
 
-.roster-entry > .roster-person-character_name {
-    font-weight: bold;
-    font-size: 120%;
-}
-
 .roster-entry > .roster-person-character_image {
     position: relative;
-    top: 25px;
     padding: 0px;
     grid-row: 1/1000;
     grid-column: 1;
     height: 120px;
     width: calc(120px / 1.1547);
     clip-path: polygon(50% 0%, 0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%);
-    background: 
-        radial-gradient(circle at 50% 0%, #bef 5%, rgba(0,0,0,0) 10%),
+    background: radial-gradient(circle at 50% 0%, #bef 5%, rgba(0,0,0,0) 10%),
         radial-gradient(circle at 100% 75%, #bef 5%, rgba(0,0,0,0) 10%),
-        radial-gradient(circle at 0% 75%, #bef 5%, rgba(0,0,0,0) 10%),
-        radial-gradient(circle at 50% 50%, #0ad 0%, #0ad 100%);
-}
-
-.roster-entry:nth-child(even) > .roster-person-character_image {
-    background: radial-gradient(circle at 50% 100%, #bef 5%, rgba(0,0,0,0) 10%),
-        radial-gradient(circle at 100% 25%, #bef 5%, rgba(0,0,0,0) 10%),
-        radial-gradient(circle at 0% 25%, #bef 5%, rgba(0,0,0,0) 10%),
-        radial-gradient(circle at 50% 50%, #0ad 0%, #0ad 100%);
-
+        radial-gradient(circle at 0% 75%, #bef 5%, rgba(0,0,0,0) 10%);
 }
 
 .roster-entry > .roster-person-character_image::before {
@@ -392,146 +358,6 @@ body {
     transform: translate(-50%);
     max-height: 110%;
     max-width: 120%;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(3) {
-    transform: translate(36px, 0px);
-    padding-right: 35px;
-    height: 40px;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(3):not(:empty)::before {
-    content: "";
-    background: radial-gradient(circle at 100% 100%, #aef 4px, rgba(0,0,0,0) 10px),
-        radial-gradient(circle at calc(100% - 15px * 1.732) calc(100% - 16px), #aef 2px, rgba(0,0,0,0) 5px),
-        linear-gradient(-50deg, #0ad 65px, rgba(0,0,0,0) 100px);
-    position: absolute;
-    width: 100px;
-    height: 20px;
-    top: 20px;
-    right: 0px;
-    clip-path: polygon(calc(100% - 15px * 1.732) calc(100% - 15px), calc(100% - 2px) 100%, 100% calc(100% - 1px),
-        calc(100% - 1px) calc(100% - 2px), calc(100% - 15px * 1.732) calc(100% - 17px), calc(100% - 30px) calc(100% - 17px),
-        calc(100% - 40px) calc(100% - 17px), 0% calc(100% - 17px), 0% calc(100% - 15px), calc(100% - 40px) calc(100% - 15px),
-        calc(100% - 30px) calc(100% - 15px));
-    z-index: -1;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(n+4) {
-    transform: translate(6px, -6px);
-    padding-right: 30px;
-    padding-top: 2px;
-    height: 20px;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(n+4):not(:empty)::before {
-    content: "";
-    background: radial-gradient(circle at 100% 100%, #aef 4px, rgba(0,0,0,0) 6px),
-        radial-gradient(circle at calc(100% - 9px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),
-        linear-gradient(-50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 60px);
-    position: absolute;
-    width: 100px;
-    height: 20px;
-    top: 12px;
-    right: 0px;
-    clip-path: polygon(calc(100% - 10px * 1.732) calc(100% - 10px), calc(100% - 2px) 100%, 100% calc(100% - 1px),
-        calc(100% - 1px) calc(100% - 2px), calc(100% - 10px * 1.732) calc(100% - 12px),
-        0% calc(100% - 12px), 0% calc(100% - 10px));
-    z-index: -1;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(n+7) {
-    height: 0px;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(n+7):not(:empty)::before {
-    content: "";
-    background: radial-gradient(circle at 100% calc(100% - 11px), #aef 4px, rgba(0,0,0,0) 6px),
-        /*radial-gradient(circle at calc(100% - 16px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),*/
-        linear-gradient(-50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 70px);
-    position: absolute;
-    width: 100px;
-    height: 20px;
-    top: 12px;
-    right: calc(-7px * 1.732);
-    clip-path: polygon(0% calc(100% - 10px), 100% calc(100% - 10px), calc(100% - 2px) calc(100% - 12px), 0% calc(100% - 12px));
-    z-index: -1;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(n+8) {
-    display: none;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(3) {
-    transform: translate(0px, 0px);
-    padding-right: 35px;
-    height: 40px;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(3):not(:empty)::before {
-    content: "";
-    background: radial-gradient(circle at 0% 100%, #aef 4px, rgba(0,0,0,0) 10px),
-        radial-gradient(circle at calc(15px * 1.732) calc(100% - 16px), #aef 2px, rgba(0,0,0,0) 5px),
-        linear-gradient(50deg, #0ad 65px, rgba(0,0,0,0) 100px);
-    position: absolute;
-    width: 100px;
-    height: 20px;
-    top: 20px;
-    left: calc(-20px * 1.732);
-    clip-path: polygon(calc(15px * 1.732) calc(100% - 15px), calc(2px) 100%, 0% calc(100% - 1px),
-        calc(1px) calc(100% - 2px), calc(15px * 1.732) calc(100% - 17px), calc(30px) calc(100% - 17px),
-        calc(40px) calc(100% - 17px), 100% calc(100% - 17px), 100% calc(100% - 15px), calc(40px) calc(100% - 15px),
-        calc(30px) calc(100% - 15px));
-    z-index: -1;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(n+4) {
-    transform: translate(16px, -6px);
-    padding-right: 30px;
-    padding-top: 2px;
-    height: 20px;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(n+4):not(:empty)::before {
-    content: "";
-    background: radial-gradient(circle at 0% 100%, #aef 4px, rgba(0,0,0,0) 6px),
-        radial-gradient(circle at calc(9px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),
-        linear-gradient(50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 60px);
-    position: absolute;
-    width: 100px;
-    height: 20px;
-    top: 12px;
-    left: -23px;
-    clip-path: polygon(calc(10px * 1.732) calc(100% - 10px), calc(2px) 100%, 0% calc(100% - 1px),
-        calc(1px) calc(100% - 2px), calc(10px * 1.732) calc(100% - 12px),
-        100% calc(100% - 12px), 100% calc(100% - 10px));
-    z-index: -1;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(n+7) {
-    height: 0px;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(n+7):not(:empty)::before {
-    content: "";
-    background: radial-gradient(circle at 0% calc(100% - 11px), #aef 4px, rgba(0,0,0,0) 6px),
-        /*radial-gradient(circle at calc(100% - 16px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),*/
-        linear-gradient(50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 70px);
-    position: absolute;
-    width: 100px;
-    height: 20px;
-    top: 12px;
-    left: calc(-20px * 1.732);
-    clip-path: polygon(0% calc(100% - 10px), 100% calc(100% - 10px), 100% calc(100% - 12px), 2px calc(100% - 12px));
-    z-index: -1;
-}
-
-.roster-entry:nth-child(even) > div:nth-child(n+8) {
-    display: none;
-}
-
-.roster-entry:nth-child(odd) > .roster-person-character_name {
-    transform: translate(20px);
 }
 
 .roster-entry > .roster-field-roster_type {
@@ -642,7 +468,6 @@ body {
 }
 
 .roster-entry > .roster-buttons {
-    display: none;
     width: 0px;
     background: linear-gradient(0deg, #116862, #111111);
     border-left: 2px solid #116862;
@@ -1059,7 +884,6 @@ body.admin .roster-entry.disabled {
     color: #40f3ff;
 }
 
-/*
 @media only screen and (max-width: 1000px) {
     #headerframe {
         z-index: 10;
@@ -1086,7 +910,7 @@ body.admin .roster-entry.disabled {
 
 @media only screen and (min-width: 1600px) {
     #main-body {
-        width: 900px;
+        width: 1320px;
     }
 }
 
@@ -1157,7 +981,6 @@ body.admin .roster-entry.disabled {
         width: 12vw;
     }
 }
-*/
 
 ::-webkit-scrollbar {
     width: 10px;
