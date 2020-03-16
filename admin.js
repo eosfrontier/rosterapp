@@ -97,9 +97,6 @@ function roster_entry(entry, newroster)
     var html = ['<div class="roster-entry']
     if (newroster) { html.push(' new-roster') }
     html.push('" data-roster-id="',entry.rosterID,'">')
-    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit roster"></div>')
-    html.push('<div class="roster-button-delete button',(newroster && ' disabled'),'" title="Delete roster"></div>')
-    html.push('<div class="roster-button-save button disabled" title="Update / Store"></div></div>')
     var roster_fields = []
     for (var f in entry.fields) {
         if (entry.fields[f].order > 0) {
@@ -117,6 +114,9 @@ function roster_entry(entry, newroster)
         html.push(htmlize(entry.roster_type))
     }
     html.push('</div></div></div>')
+    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit roster"></div>')
+    html.push('<div class="roster-button-delete button',(newroster && ' disabled'),'" title="Delete roster"></div>')
+    html.push('<div class="roster-button-save button disabled" title="Update / Store"></div></div>')
     html.push('<div class="roster-field-roster_description">')
     if (newroster) {
     } else {

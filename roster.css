@@ -214,14 +214,15 @@ body {
     // border: 1px solid #116466;
     padding: 5px;
     margin: 0px;
-    margin-bottom: 60px;
+    margin-bottom: 0px;
     // border-radius: 25px;
     // box-shadow: 0px 0px 8px #10c6de;
-    min-height: 120px;
+    min-height: 180px;
     min-width: 400px;
     // background-color: #112233;
     // overflow: hidden;
     // grid-template-rows: 35px auto;
+    // height: 180px;
 }
 
 .roster-entry:nth-child(odd) {
@@ -452,11 +453,7 @@ body {
     z-index: -1;
 }
 
-.roster-entry:nth-child(odd) > div:nth-child(n+7) {
-    height: 0px;
-}
-
-.roster-entry:nth-child(odd) > div:nth-child(n+7):not(:empty)::before {
+.roster-entry:nth-child(odd) > div:nth-child(7):not(:empty)::before {
     content: "";
     background: radial-gradient(circle at 100% calc(100% - 11px), #aef 4px, rgba(0,0,0,0) 6px),
         /*radial-gradient(circle at calc(100% - 16px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),*/
@@ -470,7 +467,35 @@ body {
     z-index: -1;
 }
 
-.roster-entry:nth-child(odd) > div:nth-child(n+8) {
+.roster-entry:nth-child(odd) > div:nth-child(8):not(:empty)::before {
+    content: "";
+    background: radial-gradient(circle at 100% calc(100% - 25px), #aef 4px, rgba(0,0,0,0) 6px),
+        radial-gradient(circle at calc(100% - 16px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),
+        linear-gradient(-50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 90px);
+    position: absolute;
+    width: 140px;
+    height: 30px;
+    top: 2px;
+    right: calc(-14px * 1.732 - 30px);
+    clip-path: polygon(0% calc(100% - 10px), calc(100% - 16px * 1.732) calc(100% - 10px), 100% calc(100% - 25px), calc(100% - 2px) calc(100% - 26px), calc(100% - 16px * 1.732) calc(100% - 12px), 0% calc(100% - 12px));
+    z-index: -1;
+}
+
+.roster-entry:nth-child(odd) > div:nth-child(9):not(:empty)::before {
+    content: "";
+    background: radial-gradient(circle at 100% calc(100% - 37px), #aef 4px, rgba(0,0,0,0) 6px),
+        radial-gradient(circle at calc(100% - 28px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),
+        linear-gradient(-50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 90px);
+    position: absolute;
+    width: 140px;
+    height: 42px;
+    top: -10px;
+    right: calc(-24px * 1.732 - 30px);
+    clip-path: polygon(0% calc(100% - 10px), calc(100% - 28px * 1.732) calc(100% - 10px), 100% calc(100% - 37px), calc(100% - 2px) calc(100% - 38px), calc(100% - 28px * 1.732) calc(100% - 12px), 0% calc(100% - 12px));
+    z-index: -1;
+}
+
+.roster-entry:nth-child(odd) > div:nth-child(n+10):not(:empty)::before {
     display: none;
 }
 
@@ -518,10 +543,6 @@ body {
     z-index: -1;
 }
 
-.roster-entry:nth-child(even) > div:nth-child(n+7) {
-    height: 0px;
-}
-
 .roster-entry:nth-child(even) > div:nth-child(n+7):not(:empty)::before {
     content: "";
     background: radial-gradient(circle at 0% calc(100% - 11px), #aef 4px, rgba(0,0,0,0) 6px),
@@ -536,9 +557,39 @@ body {
     z-index: -1;
 }
 
-.roster-entry:nth-child(even) > div:nth-child(n+8) {
+.roster-entry:nth-child(even) > div:nth-child(8):not(:empty)::before {
+    content: "";
+    background: radial-gradient(circle at 0% calc(100% - 25px), #aef 4px, rgba(0,0,0,0) 6px),
+        radial-gradient(circle at calc(16px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),
+        linear-gradient(50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 90px);
+    position: absolute;
+    width: 140px;
+    height: 30px;
+    top: 2px;
+    left: calc(-9px * 1.732 - 30px);
+    clip-path: polygon(100% calc(100% - 10px), calc(16px * 1.732) calc(100% - 10px), 0% calc(100% - 25px), 2px calc(100% - 26px), calc(16px * 1.732) calc(100% - 12px), 100% calc(100% - 12px));
+    z-index: -1;
+}
+
+.roster-entry:nth-child(even) > div:nth-child(9):not(:empty)::before {
+    content: "";
+    background: radial-gradient(circle at 0% calc(100% - 37px), #aef 4px, rgba(0,0,0,0) 6px),
+        radial-gradient(circle at calc(28px * 1.732) calc(100% - 11px), #aef 1px, rgba(0,0,0,0) 3px),
+        linear-gradient(50deg, #0ad 9px, #0ad 35px, rgba(0,0,0,0) 90px);
+    position: absolute;
+    width: 140px;
+    height: 42px;
+    top: -10px;
+    left: calc(-20px * 1.732 - 30px);
+    clip-path: polygon(100% calc(100% - 10px), calc(28px * 1.732) calc(100% - 10px), 0% calc(100% - 37px), 2px calc(100% - 38px), calc(28px * 1.732) calc(100% - 12px), 100% calc(100% - 12px));
+    z-index: -1;
+}
+
+.roster-entry:nth-child(even) > div:nth-child(n+10):not(:empty)::before {
     display: none;
 }
+
+
 
 .roster-entry:nth-child(odd) > .roster-person-character_name {
     transform: translate(20px);
@@ -665,28 +716,60 @@ body {
     transition: width 400ms ease-out;
     overflow: hidden;
     padding-top: 16px;
-    clip-path: polygon(calc(100% - 50px) 0px, 100% 30px, 100% 90px, calc(100% - 50px) 120px);
+    clip-path: polygon(calc(100% - 96px) 30px, calc(100% - 48px) 2px, 100% 30px, 100% 90px, calc(100% - 48px) 118px, calc(100% - 96px) 90px);
 }
 
 .roster-entry:nth-child(even) > .roster-buttons {
     /*right: calc(100% + 40px);*/
     left: -109px;
-    clip-path: polygon(50px 0px, 0% 30px, 0% 90px, 50px 120px);
+    clip-path: polygon(96px 30px, 48px 2px, 0% 30px, 0% 90px, 48px 118px, 96px 90px);
+}
+
+.roster-buttons .roster-button-edit {
+    position: absolute;
+    left: 0px;
+    top: 20px;
+}
+.roster-buttons .roster-button-undo {
+    position: absolute;
+    left: 0px;
+    top: 20px;
+}
+.roster-buttons .roster-button-delete {
+    position: absolute;
+    left: 0px;
+    top: 53px;
+}
+.roster-buttons .roster-button-save {
+    position: absolute;
+    left: 35px;
+    top: 53px;
 }
 
 .roster-entry:nth-child(even) > .roster-buttons .button {
-    float: right;
-    margin-left: 0;
-    margin-right: 10px;
+    right: -10px;
+    left: auto;
 }
 
+.roster-entry:nth-child(even) > .roster-buttons .button.roster-button-save {
+    right: 25px;
+    left: auto;
+}
+
+.roster-entry .roster-field-roster_type,
 .roster-entry .roster-person-character_image {
     z-index: 40;
 }
 
 .roster-entry:not(.editing):not(.disabled) .roster-buttons:hover,
+body.admin .roster-entry:not(.disabled) .roster-buttons:hover,
+body.admin .roster-entry:not(.disabled):not(.new-roster) .roster-field-roster_type:hover ~ .roster-buttons,
 .roster-entry:not(.editing):not(.disabled) .roster-person-character_image:hover ~ .roster-buttons {
     width: 40px;
+}
+
+body.admin .roster-entry.editing .roster-buttons {
+    width: 80px !important;
 }
 
 /*
