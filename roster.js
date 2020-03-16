@@ -111,8 +111,6 @@ function roster_entry(entry, doedit)
     if (doedit) { html.push(' editing') }
     if (entry['faction']) { html.push(' faction-',htmlize(entry['faction'])) }
     html.push('" data-character-id="',entry.characterID,'">')
-    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
-        '<div class="roster-button-delete button" title="Delete"></div></div>')
     for (var f = 0; f < person_fields.length; f++) {
         pf = person_fields[f]
         var text = entry[pf] || ''
@@ -142,6 +140,10 @@ function roster_entry(entry, doedit)
             }
         }
         html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'" title="',etitle,'">',text,'</div>')
+        if (f == 0) {
+            html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
+                '<div class="roster-button-delete button" title="Delete"></div></div>')
+        }
     }
     html.push('</div>')
     return html.join('')

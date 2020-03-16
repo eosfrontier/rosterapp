@@ -51,6 +51,11 @@ function fill_roster_list(roster_list)
         }, true))
     $('#headermenu-list').html(mhtml.join(''))
     $('#roster-list').html(html.join(''))
+    $('#roster-list .roster-entry > .roster-field-roster_type .field-text').each(function() {
+        var w = 100/$(this).width()
+        if (w > 1.2) w = 1.2
+        $(this).css('transform', 'rotate(-32deg) scale('+w+')')
+    })
     ftlist = []
     for (var f in field_types) {
         ftlist.push(f)
