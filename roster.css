@@ -1178,7 +1178,6 @@ body.admin .roster-entry.disabled {
     color: #40f3ff;
 }
 
-/*
 @media only screen and (max-width: 1000px) {
     #headerframe {
         z-index: 10;
@@ -1201,13 +1200,31 @@ body.admin .roster-entry.disabled {
     #footerframe {
         display: none;
     }
+    .roster-entry {
+        width: calc(100vw - 40px) !important;
+        margin: 2px 10px !important;
+        transform: none !important;
+        min-height: 0 !important;
+    }
+    .roster-entry:nth-child(odd) > .roster-field-roster_type,
+    .roster-entry:nth-child(odd) > .roster-person-character_image {
+        transform: translate(0, 0);
+    }
+    .roster-entry:nth-child(odd) > div:nth-child(3) {
+        width: calc(100vw - 216px);
+    }
+    .roster-entry:nth-child(odd) > div:nth-child(n+4) {
+        width: calc(100vw - 208px);
+    }
 }
 
+/*
 @media only screen and (min-width: 1600px) {
     #main-body {
         width: 900px;
     }
 }
+*/
 
 @media only screen and (max-width: 600px) {
     #header {
@@ -1216,6 +1233,7 @@ body.admin .roster-entry.disabled {
     #main-body {
         margin-top: 10vw;
     }
+    /*
     .roster-entry {
         min-width: 80vw;
         font-size: 3vw;
@@ -1236,6 +1254,7 @@ body.admin .roster-entry.disabled {
         height: 15vw;
         font-size: 12vw;
     }
+    */
     .add-popup {
         width:90vw;
         top: 1vw;
@@ -1276,7 +1295,6 @@ body.admin .roster-entry.disabled {
         width: 12vw;
     }
 }
-*/
 
 ::-webkit-scrollbar {
     width: 10px;
