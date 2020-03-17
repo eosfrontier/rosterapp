@@ -39,7 +39,8 @@ $.postjson = function(url, data, callback) {
 function load()
 {
     roster_type = get_cookie('roster_type')
-    $.get('api/get_roster.php', {}, fill_roster_types, 'json')
+    // $.get('api/get_roster.php', {}, fill_roster_types, 'json')
+    $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
@@ -61,6 +62,21 @@ function load()
 
 function fill_roster_types(rosters)
 {
+    var html = []
+    var rid = 0
+    for (var i = 0; i < rosters.length; i++) {
+        var rt = rosters[i].value.split(':')[0]
+        html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,'" data-roster-id="',rosters[i].character_id,'">',rt,' roster</div>')
+        if (rt == roster_type) rid = rosters[i].character_id
+
+    }
+    $('#headermenu-list').html(html.join(''))
+    if (rid != 0) {
+        $.postjson('/orthanc/character/meta/', {'id':rid}, fill_roster_fields)
+    } else {
+        $('.menu-button').addClass('visible') 
+    }
+/*
     gRosters = rosters
     var html = []
     for (var rt in rosters.rosters) {
@@ -73,16 +89,69 @@ function fill_roster_types(rosters)
     } else {
         $('.menu-button').addClass('visible') 
     }
+*/
+}
+
+function fill_roster_fields(roster)
+{
+    var meta = []
+    person_fields = []
+    skill_fields = {}
+    editable_fields = {}
+    for (var i = 0; i < roster.length; i++) {
+        var metaname = roster[i].name
+        if (metaname != 'roster:type') {
+            var metaset = metaname.split(':')
+            var external = false
+            if (metaset.length > 2) {
+                if (metaset[1] == 'character') {
+                    external = true
+                    /* TODO */
+                } else {
+                    external = true
+                    metaname = metaset.slice(1).join(':')
+                    meta.push(metaname)
+                }
+            } else {
+                meta.push(metaname)
+            }
+            var metaval = roster[i].value.split(':')
+            if (metaval[0] != 0) {
+                person_fields.push({ roster_order: metaval[0], fieldname: metaname})
+            }
+            if (metaval[1] == 'P') {
+                skill_fields[metaname] = true
+            }
+            if (!external) {
+                editable_fields[metaname] = metaval[2]
+            }
+        }
+    }
+    person_fields.sort(function(a,b) { a.roster_order - b.roster_order })
+    for (var f = 0; f < person_fields.length; f++) {
+        person_fields[f] = person_fields[f].fieldname
+    }
+    person_fields.unshift('character_name')
+    person_fields.unshift('character_image')
+    $.postjson('/orthanc/character/meta/', { "meta":meta.join(',') }, fill_roster_chars)
+}
+
+function fill_roster_chars(chars)
+{
+    console.log("TODO", chars)
 }
 
 function set_roster_type()
 {
     roster_type = $(this).attr('data-roster-type')
+    roster_id = $(this).attr('data-roster-id')
     $('span.roster-type').text(roster_type)
     set_cookie('roster_type', roster_type)
-    // $('#roster-list').text('Loading '+roster_type+' roster')
-    // $.get('api/get_roster.php', { roster_type: roster_type }, fill_roster, 'json')
+    $('#roster-list').text('Loading '+roster_type+' roster')
+    $.postjson('/orthanc/character/meta/', {'id':roster_id}, fill_roster_fields)
+    /*
     fill_roster()
+    */
     setTimeout(hide_popups, 0)
 }
 
