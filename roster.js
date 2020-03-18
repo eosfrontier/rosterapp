@@ -16,6 +16,7 @@ if ('serviceWorker' in navigator) {
 $(load)
 
 var gRosters
+var gPeople
 var roster_type
 var person_fields
 var skill_fields
@@ -106,7 +107,7 @@ function fill_roster_fields(roster)
             if (metaset.length > 2) {
                 if (metaset[1] == 'character') {
                     external = true
-                    /* TODO */
+                    metaname = metaset.slice(2).join(':')
                 } else {
                     external = true
                     metaname = metaset.slice(1).join(':')
@@ -136,9 +137,39 @@ function fill_roster_fields(roster)
     $.postjson('/orthanc/character/meta/', { "meta":meta.join(',') }, fill_roster_chars)
 }
 
-function fill_roster_chars(chars)
+function fill_roster_chars(fields)
 {
-    console.log("TODO", chars)
+    gPeople = {}
+    for (var p = 0; p < fields.length; p++) {
+        var pid = fields[p].character_id
+        if (pid >= 0) {
+            if (!gPeople[pid]) {
+                gPeople[pid] = { characterID: pid }
+            }
+            gPeople[pid][fields[p].name] = fields[p].value
+        }
+    }
+    var html = []
+    for (var pid in gPeople) {
+        var ren = roster_entry(gPeople[pid])
+        if (ren) {
+            $.postjson('/orthanc/character/', { char_id: pid }, fill_one_char)
+            html.push(ren)
+        }
+    }
+    html.push(roster_entry_new())
+    $('#roster-list').html(html.join(''))
+}
+
+function fill_one_char(person)
+{
+    var pid = person.characterID
+    var ppl = gPeople[pid]
+    for (var f = 0; f < person_fields.length; f++) {
+        var fn = person_fields[f]
+        if (person[fn]) { ppl[fn] = person[fn] }
+    }
+    $('#roster-list > .roster-entry[data-character-id="'+pid+'"]').replaceWith(roster_entry(ppl))
 }
 
 function set_roster_type()
