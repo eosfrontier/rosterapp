@@ -31,6 +31,7 @@ $.postjson = function(url, data, callback) {
         'type': 'POST',
         'url': url,
         'contentType': 'application/json',
+        'context': data,
         'data': JSON.stringify(data),
         'dataType': 'json',
         'success': callback
@@ -489,13 +490,39 @@ function save_person_field()
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
-            $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
+            $.postjson('/orthanc/character/meta/update.php', {
+                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+            //$.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
         }
     }
 }
 
 function saved_person_field(result)
 {
+    if (result == "success") {
+        var entry = $("#roster-list .roster-entry[data-character-id='"+this.id+"']")
+        for (var i = 0; i < this.meta.length; i++) {
+            var field = entry.find(".editable[data-field-name='"+this.meta[i].name+"']")
+            if (this.meta[i].value == null) {
+                entry.addClass('deleted')
+                field.text('')
+            } else {
+                var input = field.find("input")
+                var fv = this.meta[i].value
+                input.attr('value', fv)
+                if (field.hasClass('initial')) {
+                    field.removeClass('initial')
+                } else {
+                    field.addClass('saved')
+                }
+                if (input.val() == fv) {
+                    field.removeClass('changed')
+                } else {
+                    field.addClass('changed')
+                }
+            }
+        }
+    }
     if (result.characterID) {
         var entry = $("#roster-list .roster-entry[data-character-id='"+result.characterID+"']")
         var field = entry.find(".editable[data-field-name='"+result.fieldname+"']")
@@ -556,7 +583,9 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+                        // $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+                        $.postjson('/orthanc/character/meta/update.php', {
+                            id: characterID, meta: [{ name: fieldname, value: null }] }, saved_person_field)
                     }
                 })
             }
@@ -571,7 +600,9 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+        // $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
+        $.postjson('/orthanc/character/meta/update.php', {
+            id: characterID, meta: [{ name: fieldname, value: null }] }, saved_person_field)
     })
 }
 
