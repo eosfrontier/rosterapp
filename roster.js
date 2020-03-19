@@ -45,7 +45,6 @@ $.postjson = function(url, data, callback) {
 function load()
 {
     roster_type = get_cookie('roster_type')
-    // $.get('api/get_roster.php', {}, fill_roster_types, 'json')
     loading["types"] = true
     $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     loading["chars"] = true
@@ -87,20 +86,6 @@ function fill_roster_types(rosters)
     } else {
         $('.menu-button').addClass('visible') 
     }
-/*
-    gRosters = rosters
-    var html = []
-    for (var rt in rosters.rosters) {
-        html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,'">',rt,' roster</div>')
-    }
-    $('#headermenu-list').html(html.join(''))
-    fill_searchlist()
-    if (roster_type) {
-        fill_roster()
-    } else {
-        $('.menu-button').addClass('visible') 
-    }
-*/
 }
 
 function fill_roster_fields(roster)
@@ -177,18 +162,6 @@ function fill_roster_meta(fields)
             gPeople[pid][fields[p].name] = fields[p].value
         }
     }
-    /*
-    var html = []
-    for (var pid in gPeople) {
-        var ren = roster_entry(gPeople[pid])
-        if (ren) {
-            // $.postjson('/orthanc/character/', { char_id: pid }, fill_one_char)
-            html.push(ren)
-        }
-    }
-    html.push(roster_entry_new())
-    $('#roster-list').html(html.join(''))
-    */
     loading["meta"] = false
     fill_roster()
 }
@@ -222,7 +195,7 @@ function fill_roster()
     for (var pid in gPeople) {
         plist.push({ id: pid, name: gPeople[pid].character_name })
     }
-    plist.sort(function(a,b) { return (a.name < b.name) ? -1 : 1 })
+    plist.sort(function(a,b) { return a.name.localeCompare(b.name) })
 
     for (var p = 0; p < plist.length; p++) {
         pid = plist[p].id
@@ -261,9 +234,6 @@ function set_roster_type()
     loading["roster"] = true
     $.postjson('/orthanc/character/meta/', {'id':roster_id}, fill_roster_fields)
     $.postjson('/orthanc/character/', { "all_characters":"all_characters" }, fill_roster_chars)
-    /*
-    fill_roster()
-    */
     setTimeout(hide_popups, 0)
 }
 
@@ -344,44 +314,6 @@ function roster_entry_new()
     return html.join('')
 }
 
-/*
-function fill_roster()
-{
-    person_fields = []
-    skill_fields = {}
-    editable_fields = {}
-    var roster = gRosters.rosters[roster_type]
-    if (!roster) {
-        $('.menu-button').addClass('visible') 
-        return
-    }
-    for (var f = 0; f < roster.length; f++) {
-        var rf = roster[f]
-        if (rf.roster_order != 0) {
-            person_fields.push(rf)
-        }
-        if (rf.roster_fieldtype == 1) {
-            skill_fields[rf.fieldname] = true
-        }
-        if (!rf.field_external_table) {
-            editable_fields[rf.fieldname] = rf.fieldlabel
-        }
-    }
-    person_fields.sort(function(a,b) { a.roster_order - b.roster_order })
-    for (var f = 0; f < person_fields.length; f++) {
-        person_fields[f] = person_fields[f].fieldname
-    }
-    person_fields.unshift('character_name')
-    person_fields.unshift('character_image')
-    var html = []
-    for (var p = 0; p < gRosters.people.length; p++) {
-        html.push(roster_entry(gRosters.people[p]))
-    }
-    html.push(roster_entry_new())
-    $('#roster-list').html(html.join(''))
-}
-*/
-
 function fill_searchlist()
 {
     var html = []
@@ -436,18 +368,19 @@ function add_new_person()
 {
     hide_popups()
     var item = $(this)
-    var idx = $(this).attr('data-character-id')
+    var idx = $(this).attr('data-character-index')
     if (idx) {
-        if (!gPeople[idx]) {
-            var person = gCharacters[idx]
-            var ppl = { characterID: idx }
+        var person = gCharacters[idx]
+        var id = person.characterID
+        if (!gPeople[id]) {
+            var ppl = { characterID: id }
             for (var f = 0; f < person_fields.length; f++) {
                 var fn = person_fields[f]
                 if (person[fn]) { ppl[fn] = person[fn] }
             }
-            gPeople[idx] = ppl
+            gPeople[id] = ppl
         }
-        var newentry = $(roster_entry(gPeople[idx], true)).insertBefore('#roster-list .roster-entry.add-new')
+        var newentry = $(roster_entry(gPeople[id], true)).insertBefore('#roster-list .roster-entry.add-new')
         newentry.find('input').each(save_person_field)
         newentry.find('input').first().focus().select()
     }
@@ -585,7 +518,6 @@ function save_person_field()
         if (characterID && fieldname) {
             $.postjson('/orthanc/character/meta/update.php', {
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
-            //$.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: newvalue }, saved_person_field)
         }
     }
 }
@@ -676,7 +608,6 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        // $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
                         $.postjson('/orthanc/character/meta/update.php', {
                             id: characterID, meta: [{ name: fieldname, value: null }] }, saved_person_field)
                     }
@@ -693,7 +624,6 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        // $.postjson('api/save_roster_field.php', { characterID: characterID, fieldname: fieldname, oldvalue: oldvalue, newvalue: null }, saved_person_field)
         $.postjson('/orthanc/character/meta/update.php', {
             id: characterID, meta: [{ name: fieldname, value: null }] }, saved_person_field)
     })

@@ -1,11 +1,23 @@
 $(load)
 
+$.postjson = function(url, data, callback, context) {
+    $.ajax({
+        'type': 'POST',
+        'url': url,
+        'contentType': 'application/json',
+        'context': context ? context : data,
+        'data': JSON.stringify(data),
+        'dataType': 'json',
+        'success': callback
+    })
+}
+
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
 
 function load()
 {
-    $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
+    $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
     $('#roster-list').on('click','.roster-button-undo:not(.disabled)', undo_roster)
@@ -37,11 +49,21 @@ function fill_roster_list(roster_list)
 {
     var mhtml = []
     var html = []
-    field_types = roster_list.field_types
-    for (var t = 0; t < roster_list.roster_types.length; t++) {
-        var rt = roster_list.roster_types[t]
+    field_types = {}
+    for (var t = 0; t < roster_list.length; t++) {
+        var rid = roster_list[t].character_id
+        var rtent = roster_list[t].value.split(':')
+        var rt = {
+            rosterID: rid,
+            roster_type: rtent[0],
+            roster_description: rtent.slice(1).join(':'),
+            fields: {
+                'status': { 'order': 0, 'fieldtype': 0 }
+            }
+        }
         mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'">',rt.roster_type,' roster</div>')
         html.push(roster_entry(rt))
+        $.postjson('/orthanc/character/meta/', { 'id': rid }, fill_roster_entry)
     }
     html.push(roster_entry({
         roster_type: "new type",
@@ -56,6 +78,46 @@ function fill_roster_list(roster_list)
         if (w > 1.2) w = 1.2
         $(this).css('transform', 'rotate(-32deg) scale('+w+')')
     })
+}
+
+function fill_roster_entry(fields)
+{
+    var rid = this.id
+    var rt = { rosterID: rid, fields: {} }
+    for (var f = 0; f < fields.length; f++) {
+        var entry = fields[f]
+        var rtent = entry.value.split(':')
+        if (entry.name == 'roster:type') {
+            rt['roster_type'] = rtent[0]
+            rt['roster_description'] = rtent.slice(1).join(':')
+        } else {
+            var rtnm = entry.name.split(':')
+            var external = false
+            if (rtnm.length > 2) {
+                external = true
+            }
+            rt.fields[entry.name] = {
+                order: parseInt(rtent[0]),
+                fieldtype: rtent[1] == 'P' ? 1 : 0
+            }
+            field_types[entry.name] = {
+                fieldlabel: rtent[2],
+                field_external_table: external
+            }
+        }
+    }
+    if (rid != 0) {
+        $('#roster-list .roster-entry[data-roster-id="'+rid+'"]').replaceWith(roster_entry(rt))
+        var re = $('#roster-list .roster-entry[data-roster-id="'+rid+'"] > .roster-field-roster_type .field-text')
+        var w = 100/re.width()
+        if (w > 1.2) w = 1.2
+        re.css('transform', 'rotate(-32deg) scale('+w+')')
+    }
+    fill_fields()
+}
+
+function fill_fields()
+{
     ftlist = []
     for (var f in field_types) {
         ftlist.push(f)
@@ -275,7 +337,7 @@ function undo_roster()
 {
     var re = $(this).closest('.roster-entry')
     if (re) {
-        $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
+        $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_list)
         re.addClass('disabled')
     }
 }
@@ -292,41 +354,62 @@ function inputval_or_text(element)
 
 function save_roster()
 {
+    save_roster_entry.apply(this)
+}
+
+function save_roster_entry(rids)
+{
     var re = $(this).closest('.roster-entry')
     var roster_type = inputval_or_text(re.find('.roster-field-roster_type .field-text'))
-    var savefields = {
-        'roster_type': roster_type,
-        'roster_description':inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
-    }
+    var roster_desc = inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
+    var savefields = [
+        { "name": "roster:type", "value": roster_type+":"+roster_desc }
+    ]
     var rosterID = re.attr('data-roster-id')
-    if (rosterID) {
-        savefields['rosterID'] = rosterID
+    if (!rosterID) {
+        if (rids) {
+            rosterID = -1
+            for (var r = 0; r < rids.length; r++) {
+                if (rids[r].character_id <= rosterID) {
+                    rosterID = rids[r].character_id - 1
+                }
+            }
+        } else {
+            $.postjson('/orthanc/character/meta/', { 'meta':'roster:type' }, save_roster_entry, this)
+            return
+        }
     }
-    var ord = 1
-    re.find('.roster-field[data-fieldname]').each(function() {
-        var fieldtype = $(this).hasClass('field-mandatory') ? '1' : '0'
-        savefields['field-'+$(this).attr('data-fieldname')] = ord+','+fieldtype
-        ord++
-    })
     $('#add-field-popup .search-field input').each(function() {
         var input = $(this)
         var sf = input.closest('.search-field')
         var fieldname = sf.attr('data-fieldname')
-        if (fieldname && savefields['field-'+fieldname]) {
-            savefields['fieldtype-'+fieldname] = (input.val() || fieldname.replace('_',' '))
+        if (fieldname) {
+            if (!field_types[fieldname]) {
+                field_types[fieldname] = {}
+            }
+            field_types[fieldname] = (input.val() || fieldname.replace('_',' '))
         }
     })
-    $.post('api/save_roster.php', savefields, saved_roster)
+    var ord = 1
+    re.find('.roster-field[data-fieldname]').each(function() {
+        var fieldtype = $(this).hasClass('field-mandatory') ? 'P' : ''
+        var fieldname = $(this).attr('data-fieldname')
+        var fieldlabel = fieldname
+        if (field_types[fieldname] && field_types[fieldname].fieldlabel) {
+            fieldlabel = field_types[fieldname].fieldlabel
+        }
+        savefields.push({ 'name':fieldname, 'value':ord+':'+fieldtype+':'+fieldlabel })
+        ord++
+    })
+    $.postjson('/orthanc/character/meta/update.php', {
+        id: rosterID, meta: savefields }, saved_roster)
     var savebutton = re.find('.roster-button-save')
     savebutton.addClass('disabled')
-    // setTimeout(function() { savebutton.addClass('enabled') }, 5000)
 }
 
 function saved_roster(result)
 {
-    if (result.result) {
-        $.get('api/get_roster_list.php', {}, fill_roster_list, 'json')
-    }
+    $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 }
 
 function delete_roster()
