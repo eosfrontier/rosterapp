@@ -14,6 +14,7 @@ $.postjson = function(url, data, callback, context) {
 
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
+var roster_field_types = {}
 
 function load()
 {
@@ -50,6 +51,7 @@ function fill_roster_list(roster_list)
     var mhtml = []
     var html = []
     field_types = {}
+    roster_field_types = {}
     for (var t = 0; t < roster_list.length; t++) {
         var rid = roster_list[t].character_id
         var rtent = roster_list[t].value.split(':')
@@ -84,6 +86,7 @@ function fill_roster_entry(fields)
 {
     var rid = this.id
     var rt = { rosterID: rid, fields: {} }
+    roster_field_types[rid] = []
     for (var f = 0; f < fields.length; f++) {
         var entry = fields[f]
         var rtent = entry.value.split(':')
@@ -101,18 +104,17 @@ function fill_roster_entry(fields)
                 fieldtype: rtent[1] == 'P' ? 1 : 0
             }
             field_types[entry.name] = {
-                fieldlabel: rtent[2],
+                fieldlabel: rtent.slice(2).join(':'),
                 field_external_table: external
             }
+            roster_field_types[rid].push(entry.name)
         }
     }
-    if (rid != 0) {
-        $('#roster-list .roster-entry[data-roster-id="'+rid+'"]').replaceWith(roster_entry(rt))
-        var re = $('#roster-list .roster-entry[data-roster-id="'+rid+'"] > .roster-field-roster_type .field-text')
-        var w = 100/re.width()
-        if (w > 1.2) w = 1.2
-        re.css('transform', 'rotate(-32deg) scale('+w+')')
-    }
+    $('#roster-list .roster-entry[data-roster-id="'+rid+'"]').replaceWith(roster_entry(rt))
+    var re = $('#roster-list .roster-entry[data-roster-id="'+rid+'"] > .roster-field-roster_type .field-text')
+    var w = 100/re.width()
+    if (w > 1.2) w = 1.2
+    re.css('transform', 'rotate(-32deg) scale('+w+')')
     fill_fields()
 }
 
@@ -165,7 +167,7 @@ function roster_entry(entry, newroster)
             roster_fields.push({fieldname:f,order:entry.fields[f].order})
         }
     }
-    roster_fields.sort(function(a,b) { a.order - b.order })
+    roster_fields.sort(function(a,b) { return a.order - b.order })
     for (var f = 0; f < roster_fields.length; f++) {
         roster_fields[f] = roster_fields[f].fieldname
     }
@@ -235,10 +237,10 @@ function start_new_roster()
         var oldtype = re.attr('data-roster-type')
         if (oldtype) {
             re.attr('data-roster-type', typeval)
-            $('.roster-entry [data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').find('span').text(ctypeval+' Skill')
-            $('.roster-entry [data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').find('span').text(ctypeval+' Interest')
-            $('.search-field[data-fieldname="'+oldtype+'_skill"]').attr('data-fieldname',typeval+'_skill').find('input[type="text"]').val(ctypeval+' Skill')
-            $('.search-field[data-fieldname="'+oldtype+'_interest"]').attr('data-fieldname',typeval+'_interest').find('input[type="text"]').val(ctypeval+' Interest')
+            $('.roster-entry [data-fieldname="roster:'+oldtype+'_skill"]').attr('data-fieldname','roster:'+typeval+'_skill').find('span').text(ctypeval+' Skill')
+            $('.roster-entry [data-fieldname="roster:'+oldtype+'_interest"]').attr('data-fieldname','roster:'+typeval+'_interest').find('span').text(ctypeval+' Interest')
+            $('.search-field[data-fieldname="roster:'+oldtype+'_skill"]').attr('data-fieldname','roster:'+typeval+'_skill').find('input[type="text"]').val(ctypeval+' Skill')
+            $('.search-field[data-fieldname="roster:'+oldtype+'_interest"]').attr('data-fieldname','roster:'+typeval+'_interest').find('input[type="text"]').val(ctypeval+' Interest')
         }
         return
     }
@@ -262,12 +264,12 @@ function start_new_roster()
         var newinput = $('<input type="text" placeholder="Description of roster">')
         re.find('.roster-field-roster_description').html(newinput)
         newinput.focus()
-        $('.search-field-default-skill').attr('data-fieldname', typeval+'_skill').find('input').val(ctypeval+' Skill')
-        $('.search-field-default-interest').attr('data-fieldname', typeval+'_interest').find('input').val(ctypeval+' Interest')
+        $('.search-field-default-skill').attr('data-fieldname', 'roster:'+typeval+'_skill').find('input').val(ctypeval+' Skill')
+        $('.search-field-default-interest').attr('data-fieldname', 'roster:'+typeval+'_interest').find('input').val(ctypeval+' Interest')
         re.find('.roster-new-field').before(
-            '<div class="roster-field-'+typeval+'_skill roster-field field-normal" data-fieldname="'+typeval+'_skill">'+
+            '<div class="roster-field-'+typeval+'_skill roster-field field-normal" data-fieldname="roster:'+typeval+'_skill">'+
             '<div class="roster-field-radiobutton"></div><span>&lt;'+ctypeval+' Skill&gt;</span></div>'+
-            '<div class="roster-field-'+typeval+'_interest roster-field field-mandatory field-normal" data-fieldname="'+typeval+'_interest">'+
+            '<div class="roster-field-'+typeval+'_interest roster-field field-mandatory field-normal" data-fieldname="roster:'+typeval+'_interest">'+
             '<div class="roster-field-radiobutton"></div><span>&lt;'+ctypeval+' Interest&gt;</span></div>')
         set_sortable(re)
     }
@@ -387,9 +389,15 @@ function save_roster_entry(rids)
             if (!field_types[fieldname]) {
                 field_types[fieldname] = {}
             }
-            field_types[fieldname] = (input.val() || fieldname.replace('_',' '))
+            field_types[fieldname].fieldlabel = (input.val() || fieldname.replace('_',' '))
         }
     })
+    var old_fields = {}
+    if (roster_field_types[rosterID]) {
+        for (var f = 0; f < roster_field_types[rosterID].length; f++) {
+            old_fields[roster_field_types[rosterID][f]] = true
+        }
+    }
     var ord = 1
     re.find('.roster-field[data-fieldname]').each(function() {
         var fieldtype = $(this).hasClass('field-mandatory') ? 'P' : ''
@@ -399,12 +407,26 @@ function save_roster_entry(rids)
             fieldlabel = field_types[fieldname].fieldlabel
         }
         savefields.push({ 'name':fieldname, 'value':ord+':'+fieldtype+':'+fieldlabel })
+        delete old_fields[fieldname]
         ord++
     })
+    var fields_todelete = []
+    for (var of in old_fields) {
+        fields_todelete.push({'name': of})
+    }
+    if (fields_todelete.length > 0) {
+        $.postjson('/orthanc/character/meta/delete.php', {
+            id: rosterID, meta: fields_todelete }, cleaned_roster)
+    }
     $.postjson('/orthanc/character/meta/update.php', {
         id: rosterID, meta: savefields }, saved_roster)
     var savebutton = re.find('.roster-button-save')
     savebutton.addClass('disabled')
+}
+
+function cleaned_roster(result)
+{
+    /* Ignore */
 }
 
 function saved_roster(result)
@@ -516,7 +538,7 @@ function select_field_entry()
 
 function labeltoname(label)
 {
-    return label.replace(/[^A-Za-z0-9]+/, '_').toLowerCase()
+    return 'roster:'+label.replace(/[^A-Za-z0-9]+/, '_').toLowerCase()
 }
 
 function add_new_search_field()

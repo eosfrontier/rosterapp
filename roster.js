@@ -125,7 +125,7 @@ function fill_roster_fields(roster)
             }
         }
     }
-    person_fields.sort(function(a,b) { a.roster_order - b.roster_order })
+    person_fields.sort(function(a,b) { return a.roster_order - b.roster_order })
     for (var f = 0; f < person_fields.length; f++) {
         person_fields[f] = person_fields[f].fieldname
     }
@@ -608,8 +608,8 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.postjson('/orthanc/character/meta/update.php', {
-                            id: characterID, meta: [{ name: fieldname, value: null }] }, saved_person_field)
+                        $.postjson('/orthanc/character/meta/delete.php', {
+                            id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
                     }
                 })
             }
@@ -624,8 +624,8 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        $.postjson('/orthanc/character/meta/update.php', {
-            id: characterID, meta: [{ name: fieldname, value: null }] }, saved_person_field)
+        $.postjson('/orthanc/character/meta/delete.php', {
+            id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
     })
 }
 
