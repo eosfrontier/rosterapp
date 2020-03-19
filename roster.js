@@ -16,7 +16,9 @@ if ('serviceWorker' in navigator) {
 $(load)
 
 var gRosters
-var gPeople
+var gPeople = {}
+var gCharacters
+var loading = {}
 var roster_type
 var person_fields
 var skill_fields
@@ -24,6 +26,8 @@ var extra_fields
 var special_fields = { character_image:'<div><img src="https://www.eosfrontier.space/eos_douane/images/mugs/{{characterID}}.jpg"></div>' }
 var special_fieldsnew = { character_image:'<div><div class="image-add-new">+</div></div>' }
 var editable_fields
+var meta_fields = []
+var character_fields = []
 var search_value = ''
 
 $.postjson = function(url, data, callback) {
@@ -42,7 +46,10 @@ function load()
 {
     roster_type = get_cookie('roster_type')
     // $.get('api/get_roster.php', {}, fill_roster_types, 'json')
+    loading["types"] = true
     $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_types)
+    loading["chars"] = true
+    $.postjson('/orthanc/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
@@ -72,8 +79,10 @@ function fill_roster_types(rosters)
         if (rt == roster_type) rid = rosters[i].character_id
 
     }
+    loading["types"] = false
     $('#headermenu-list').html(html.join(''))
     if (rid != 0) {
+        loading["roster"] = true
         $.postjson('/orthanc/character/meta/', {'id':rid}, fill_roster_fields)
     } else {
         $('.menu-button').addClass('visible') 
@@ -96,10 +105,11 @@ function fill_roster_types(rosters)
 
 function fill_roster_fields(roster)
 {
-    var meta = []
     person_fields = []
     skill_fields = {}
     editable_fields = {}
+    meta_fields = []
+    character_fields = []
     for (var i = 0; i < roster.length; i++) {
         var metaname = roster[i].name
         if (metaname != 'roster:type') {
@@ -109,13 +119,14 @@ function fill_roster_fields(roster)
                 if (metaset[1] == 'character') {
                     external = true
                     metaname = metaset.slice(2).join(':')
+                    character_fields.push(metaname)
                 } else {
                     external = true
                     metaname = metaset.slice(1).join(':')
-                    meta.push(metaname)
+                    meta_fields.push(metaname)
                 }
             } else {
-                meta.push(metaname)
+                meta_fields.push(metaname)
             }
             var metaval = roster[i].value.split(':')
             if (metaval[0] != 0) {
@@ -135,12 +146,28 @@ function fill_roster_fields(roster)
     }
     person_fields.unshift('character_name')
     person_fields.unshift('character_image')
-    $.postjson('/orthanc/character/meta/', { "meta":meta.join(',') }, fill_roster_chars)
+    loading["roster"] = false
+    loading["meta"] = true
+    $.postjson('/orthanc/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
 }
 
-function fill_roster_chars(fields)
+function fill_roster_chars(people)
 {
-    gPeople = {}
+    people.sort(function(a,b) { return (a.character_name < b.character_name) ? -1 : 1 })
+    gCharacters = people
+    loading["chars"] = false
+    fill_roster()
+    fill_searchlist()
+}
+
+function fill_roster_meta(fields)
+{
+    // gPeople = {}
+    for (var pid in gPeople) {
+        for (var f = 0; f < meta_fields.length; f++) {
+            delete gPeople[pid][meta_fields[f]]
+        }
+    }
     for (var p = 0; p < fields.length; p++) {
         var pid = fields[p].character_id
         if (pid >= 0) {
@@ -150,12 +177,62 @@ function fill_roster_chars(fields)
             gPeople[pid][fields[p].name] = fields[p].value
         }
     }
+    /*
     var html = []
     for (var pid in gPeople) {
         var ren = roster_entry(gPeople[pid])
         if (ren) {
-            $.postjson('/orthanc/character/', { char_id: pid }, fill_one_char)
+            // $.postjson('/orthanc/character/', { char_id: pid }, fill_one_char)
             html.push(ren)
+        }
+    }
+    html.push(roster_entry_new())
+    $('#roster-list').html(html.join(''))
+    */
+    loading["meta"] = false
+    fill_roster()
+}
+
+function fill_roster()
+{
+    for (var l in loading) {
+        if (loading[l]) return;
+    }
+    if (gCharacters) {
+        for (var pid in gPeople) {
+            for (var f = 0; f < character_fields.length; f++) {
+                delete gPeople[pid][character_fields[f]]
+            }
+        }
+        for (var p = 0; p < gCharacters.length; p++) {
+            var person = gCharacters[p]
+            var pid = person.characterID
+            var ppl = gPeople[pid]
+            if (ppl) {
+                for (var f = 0; f < person_fields.length; f++) {
+                    var fn = person_fields[f]
+                    if (person[fn]) { ppl[fn] = person[fn] }
+                }
+            }
+            // $('#roster-list > .roster-entry[data-character-id="'+pid+'"]').replaceWith(roster_entry(ppl))
+        }
+    }
+    var html = []
+    var plist = []
+    for (var pid in gPeople) {
+        plist.push({ id: pid, name: gPeople[pid].character_name })
+    }
+    plist.sort(function(a,b) { return (a.name < b.name) ? -1 : 1 })
+
+    for (var p = 0; p < plist.length; p++) {
+        pid = plist[p].id
+        if (!gPeople[pid].hasOwnProperty('character_name')) {
+            delete gPeople[pid]
+        } else {
+            var ren = roster_entry(gPeople[pid])
+            if (ren) {
+                html.push(ren)
+            }
         }
     }
     html.push(roster_entry_new())
@@ -180,7 +257,10 @@ function set_roster_type()
     $('span.roster-type').text(roster_type)
     set_cookie('roster_type', roster_type)
     $('#roster-list').text('Loading '+roster_type+' roster')
+    loading["chars"] = true
+    loading["roster"] = true
     $.postjson('/orthanc/character/meta/', {'id':roster_id}, fill_roster_fields)
+    $.postjson('/orthanc/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     /*
     fill_roster()
     */
@@ -264,6 +344,7 @@ function roster_entry_new()
     return html.join('')
 }
 
+/*
 function fill_roster()
 {
     person_fields = []
@@ -299,22 +380,25 @@ function fill_roster()
     html.push(roster_entry_new())
     $('#roster-list').html(html.join(''))
 }
+*/
 
 function fill_searchlist()
 {
     var html = []
-    for (var p = 0; p < gRosters.people.length; p++) {
-        var entry = gRosters.people[p]
-        html.push('<div class="selected search-person')
-        if (entry['faction']) { html.push(' faction-',htmlize(entry['faction'])) }
-        html.push('" data-character-index="',p,
-            '" data-character-id="',htmlize(entry['characterID']),'" data-search-key="',
-            htmlize(entry['character_name'].toLowerCase()),'">',
-            '<div class="search-person-character_image"></div>',
-            '<div class="search-person-character_name">',htmlize(entry['character_name']),'</div>',
-            '<div class="search-person-faction">',htmlize(entry['faction']),'</div>',
-            '<div class="search-person-rank">',htmlize(entry['rank']),'</div>',
-            '</div>')
+    for (var p = 0; p < gCharacters.length; p++) {
+        var entry = gCharacters[p]
+        if ((entry['accountID'] > 0) && (entry['sheet_status'] == 'active')) {
+            html.push('<div class="selected search-person')
+            if (entry['faction']) { html.push(' faction-',htmlize(entry['faction'])) }
+            html.push('" data-character-index="',p,
+                '" data-character-id="',htmlize(entry['characterID']),'" data-search-key="',
+                htmlize(entry['character_name'].toLowerCase()),'">',
+                '<div class="search-person-character_image"></div>',
+                '<div class="search-person-character_name">',htmlize(entry['character_name']),'</div>',
+                '<div class="search-person-faction">',htmlize(entry['faction']),'</div>',
+                '<div class="search-person-rank">',htmlize(entry['rank']),'</div>',
+                '</div>')
+        }
     }
 
     $('#search-person-list').html(html.join(''))
@@ -352,9 +436,18 @@ function add_new_person()
 {
     hide_popups()
     var item = $(this)
-    var idx = $(this).attr('data-character-index')
+    var idx = $(this).attr('data-character-id')
     if (idx) {
-        var newentry = $(roster_entry(gRosters.people[idx], true)).insertBefore('#roster-list .roster-entry.add-new')
+        if (!gPeople[idx]) {
+            var person = gCharacters[idx]
+            var ppl = { characterID: idx }
+            for (var f = 0; f < person_fields.length; f++) {
+                var fn = person_fields[f]
+                if (person[fn]) { ppl[fn] = person[fn] }
+            }
+            gPeople[idx] = ppl
+        }
+        var newentry = $(roster_entry(gPeople[idx], true)).insertBefore('#roster-list .roster-entry.add-new')
         newentry.find('input').each(save_person_field)
         newentry.find('input').first().focus().select()
     }
