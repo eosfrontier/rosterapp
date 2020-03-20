@@ -1,7 +1,0 @@
-<?php
-$db_server = "<server>";
-$db_username = "<username>";
-$db_password = "<password>";
-$db_database = "<database>";
-$db_port = 3306;
-?>
