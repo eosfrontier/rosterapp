@@ -2,6 +2,7 @@ $(load)
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
+var clienttoken = 'xxxx-xxxx-xxxx'
 
 var gRosters
 var gPeople = {}
@@ -19,6 +20,7 @@ var character_fields = []
 var search_value = ''
 
 $.postjson = function(url, data, callback) {
+    data['token'] = clienttoken
     $.ajax({
         'type': 'POST',
         'url': url,

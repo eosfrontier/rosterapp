@@ -1,12 +1,14 @@
 $(load)
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
+var clienttoken = 'xxxx-xxxx-xxxx'
 
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
 var roster_field_types = {}
 
 $.postjson = function(url, data, callback, context) {
+    data['token'] = clienttoken
     $.ajax({
         'type': 'POST',
         'url': url,
