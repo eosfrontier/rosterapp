@@ -1,5 +1,8 @@
 $(load)
 
+var orthanc = 'https://api.eosfrontier.space/orthanc'
+var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
+
 var gRosters
 var gPeople = {}
 var gCharacters
@@ -8,7 +11,7 @@ var roster_type
 var person_fields
 var skill_fields
 var extra_fields
-var special_fields = { character_image:'<div><img src="https://www.eosfrontier.space/eos_douane/images/mugs/{{characterID}}.jpg"></div>' }
+var special_fields = { character_image:'<div><img src="'+mugserver+'{{characterID}}.jpg"></div>' }
 var special_fieldsnew = { character_image:'<div><div class="image-add-new">+</div></div>' }
 var editable_fields
 var meta_fields = []
@@ -31,9 +34,9 @@ function load()
 {
     roster_type = get_cookie('roster_type')
     loading["types"] = true
-    $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_types)
+    $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     loading["chars"] = true
-    $.postjson('/orthanc/character/', { "all_characters":"all_characters" }, fill_roster_chars)
+    $.postjson(orthanc+'/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
@@ -67,7 +70,7 @@ function fill_roster_types(rosters)
     $('#headermenu-list').html(html.join(''))
     if (rid != 0) {
         loading["roster"] = true
-        $.postjson('/orthanc/character/meta/', {'id':rid}, fill_roster_fields)
+        $.postjson(orthanc+'/character/meta/', {'id':rid}, fill_roster_fields)
     } else {
         $('.menu-button').addClass('visible') 
     }
@@ -118,7 +121,7 @@ function fill_roster_fields(roster)
     person_fields.unshift('character_image')
     loading["roster"] = false
     loading["meta"] = true
-    $.postjson('/orthanc/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
+    $.postjson(orthanc+'/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
 }
 
 function fill_roster_chars(people)
@@ -217,8 +220,8 @@ function set_roster_type()
     $('#roster-list').text('Loading '+roster_type+' roster')
     loading["chars"] = true
     loading["roster"] = true
-    $.postjson('/orthanc/character/meta/', {'id':roster_id}, fill_roster_fields)
-    $.postjson('/orthanc/character/', { "all_characters":"all_characters" }, fill_roster_chars)
+    $.postjson(orthanc+'/character/meta/', {'id':roster_id}, fill_roster_fields)
+    $.postjson(orthanc+'/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     setTimeout(hide_popups, 0)
 }
 
@@ -462,7 +465,7 @@ function input_searchlist()
             selected_entries.not(':has(.search-person-character_image img)').each(function() {
                 var characterID = $(this).attr('data-character-id')
                 if (characterID) {
-                    $(this).find('.search-person-character_image').html('<img src="https://www.eosfrontier.space/eos_douane/images/mugs/'+characterID+'.jpg">')
+                    $(this).find('.search-person-character_image').html('<img src="'+mugserver+characterID+'.jpg">')
                 }
             })
         }
@@ -501,7 +504,7 @@ function save_person_field()
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
-            $.postjson('/orthanc/character/meta/update.php', {
+            $.postjson(orthanc+'/character/meta/update.php', {
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
         }
     }
@@ -593,7 +596,7 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.postjson('/orthanc/character/meta/delete.php', {
+                        $.postjson(orthanc+'/character/meta/delete.php', {
                             id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
                     }
                 })
@@ -609,7 +612,7 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        $.postjson('/orthanc/character/meta/delete.php', {
+        $.postjson(orthanc+'/character/meta/delete.php', {
             id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
     })
 }

@@ -1,5 +1,11 @@
 $(load)
 
+var orthanc = 'https://api.eosfrontier.space/orthanc'
+
+var special_fields = { roster_type:'<div class="image-field">?</div>' }
+var field_types
+var roster_field_types = {}
+
 $.postjson = function(url, data, callback, context) {
     $.ajax({
         'type': 'POST',
@@ -12,13 +18,9 @@ $.postjson = function(url, data, callback, context) {
     })
 }
 
-var special_fields = { roster_type:'<div class="image-field">?</div>' }
-var field_types
-var roster_field_types = {}
-
 function load()
 {
-    $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_list)
+    $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
     $('#roster-list').on('click','.roster-button-undo:not(.disabled)', undo_roster)
@@ -65,7 +67,7 @@ function fill_roster_list(roster_list)
         }
         mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'">',rt.roster_type,' roster</div>')
         html.push(roster_entry(rt))
-        $.postjson('/orthanc/character/meta/', { 'id': rid }, fill_roster_entry)
+        $.postjson(orthanc+'/character/meta/', { 'id': rid }, fill_roster_entry)
     }
     html.push(roster_entry({
         roster_type: "new type",
@@ -339,7 +341,7 @@ function undo_roster()
 {
     var re = $(this).closest('.roster-entry')
     if (re) {
-        $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_list)
+        $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
         re.addClass('disabled')
     }
 }
@@ -377,7 +379,7 @@ function save_roster_entry(rids)
                 }
             }
         } else {
-            $.postjson('/orthanc/character/meta/', { 'meta':'roster:type' }, save_roster_entry, this)
+            $.postjson(orthanc+'/character/meta/', { 'meta':'roster:type' }, save_roster_entry, this)
             return
         }
     }
@@ -415,10 +417,10 @@ function save_roster_entry(rids)
         fields_todelete.push({'name': of})
     }
     if (fields_todelete.length > 0) {
-        $.postjson('/orthanc/character/meta/delete.php', {
+        $.postjson(orthanc+'/character/meta/delete.php', {
             id: rosterID, meta: fields_todelete }, cleaned_roster)
     }
-    $.postjson('/orthanc/character/meta/update.php', {
+    $.postjson(orthanc+'/character/meta/update.php', {
         id: rosterID, meta: savefields }, saved_roster)
     var savebutton = re.find('.roster-button-save')
     savebutton.addClass('disabled')
@@ -431,7 +433,7 @@ function cleaned_roster(result)
 
 function saved_roster(result)
 {
-    $.postjson('/orthanc/character/meta/', {'meta':'roster:type'}, fill_roster_list)
+    $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 }
 
 function delete_roster()
