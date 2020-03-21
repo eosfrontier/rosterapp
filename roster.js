@@ -1,6 +1,7 @@
 $(load)
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
+//var orthanc = '/orthanc'
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 var clienttoken = 'xxxx-xxxx-xxxx'
 

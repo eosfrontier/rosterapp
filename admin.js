@@ -1,7 +1,14 @@
 $(load)
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
+//var orthanc = '/orthanc'
 var clienttoken = 'xxxx-xxxx-xxxx'
+
+var default_field_types = {
+   "roster:character:faction": { fieldlabel: "Faction", field_external_table: true },
+   "roster:character:rank": { fieldlabel: "Rank", field_external_table: true }
+}
+
 
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
@@ -54,7 +61,7 @@ function fill_roster_list(roster_list)
 {
     var mhtml = []
     var html = []
-    field_types = {}
+    field_types = $.extend(true, {}, default_field_types)
     roster_field_types = {}
     for (var t = 0; t < roster_list.length; t++) {
         var rid = roster_list[t].character_id
@@ -128,7 +135,10 @@ function fill_fields()
     for (var f in field_types) {
         ftlist.push(f)
     }
-    ftlist.sort(function(a,b) { return field_types[a].fieldlabel.localeCompare(field_types[b].fieldlabel) })
+    ftlist.sort(function(a,b) {
+        return field_types[b].field_external_table - field_types[a].field_external_table ||
+        field_types[a].fieldlabel.localeCompare(field_types[b].fieldlabel)
+        })
     html = []
     for (var f = 0; f < ftlist.length; f++) {
         var ft = ftlist[f]
