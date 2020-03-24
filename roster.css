@@ -28,7 +28,6 @@ body {
 #headerframe {
     flex: initial;
     width: 100%;
-    min-width: 450px;
     border-bottom: 1px solid #116466;
     background: linear-gradient(178deg, #116466, #111111);
     margin-bottom: 5px;
@@ -136,7 +135,6 @@ body {
 #footerframe {
     flex: initial;
     width: 100%;
-    min-width: 450px;
     border-top: 1px solid #116466;
     margin-top: 10px;
     background: linear-gradient(-1deg, #116466, #112122, #111111);
@@ -211,18 +209,12 @@ body {
     display: grid;
     grid-gap: 0px;
     grid-template-columns: auto;
-    // border: 1px solid #116466;
     padding: 5px;
     margin: 0px;
     margin-bottom: 0px;
-    // border-radius: 25px;
-    // box-shadow: 0px 0px 8px #10c6de;
+
     min-height: 180px;
     min-width: 400px;
-    // background-color: #112233;
-    // overflow: hidden;
-    // grid-template-rows: 35px auto;
-    // height: 180px;
 }
 
 .roster-entry:nth-child(odd) {
@@ -384,7 +376,7 @@ body {
 
 .roster-entry > .roster-field-roster_type > div,
 .roster-entry > .roster-person-character_image > div {
-    position: absolute;
+    position: relative;
     top: calc(4px * 1.1547);
     left: 4px;
     height: calc(100% - 8px * 1.1547);
@@ -1178,7 +1170,7 @@ body.admin .roster-entry.disabled {
     color: #40f3ff;
 }
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 914px) {
     #headerframe {
         z-index: 10;
         position: fixed;
@@ -1187,28 +1179,44 @@ body.admin .roster-entry.disabled {
         font-size: 200%;
         width: 100vw;
         margin: 0;
+        height: 40px;
     }
     #main-body {
-        width: 100vw;
-        position: static;
-        overflow: visible;
+        width: 900px;
+        position: relative;
+        overflow-x: none;
+        overflow-y: auto;
         border: 0;
         padding: 0;
         margin: 0;
-        margin-top: 50px;
+        margin-top: 40px;
+        left: calc((100vw - 820px)/2);
     }
     #footerframe {
         display: none;
+    }
+    .roster-entry {
+        width: calc(50vw - 40px) !important;
+    }
+}
+@media only screen and (max-width: 699px) {
+    #main-body {
+        width: 100vw;
+        left: 0px;
     }
     .roster-entry {
         width: calc(100vw - 40px) !important;
         margin: 2px 10px !important;
         transform: none !important;
         min-height: 0 !important;
+        min-width: 0 !important;
+    }
+    .roster-entry:nth-child(odd) {
+        grid-template-columns: auto;
     }
     .roster-entry:nth-child(odd) > .roster-field-roster_type,
     .roster-entry:nth-child(odd) > .roster-person-character_image {
-        transform: translate(0, 0);
+        transform: none;
     }
     .roster-entry:nth-child(odd) > div:nth-child(3) {
         width: calc(100vw - 216px);
@@ -1229,9 +1237,10 @@ body.admin .roster-entry.disabled {
 @media only screen and (max-width: 600px) {
     #header {
         font-size: 5vw;
+        height: 6vw;
     }
     #main-body {
-        margin-top: 10vw;
+        margin-top: 6vw;
     }
     /*
     .roster-entry {
@@ -1260,6 +1269,7 @@ body.admin .roster-entry.disabled {
         top: 1vw;
         bottom: 1vw;
     }
+/*
     .roster-entry > .roster-field-roster_type {
         width: 20vw;
         height: 24vw;
@@ -1294,6 +1304,7 @@ body.admin .roster-entry.disabled {
     body.admin .roster-entry:not(.disabled):hover > .roster-buttons {
         width: 12vw;
     }
+*/
 }
 
 ::-webkit-scrollbar {
