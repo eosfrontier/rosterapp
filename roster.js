@@ -559,16 +559,18 @@ function change_person_field()
 
 function save_person_checkbox()
 {
-    var newvalue = ''
-    if ($(this).is(':checked')) {
-        newvalue = $(this).val()
-    }
+    var newvalue = $(this).val()
     var field = $(this).closest('.editable')
     var fieldname = field.attr('data-field-name')
     var characterID = field.closest('.roster-entry').attr('data-character-id')
     if (characterID && fieldname) {
-        $.postjson(orthanc+'/character/meta/update.php', {
-            id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+        if ($(this).is(':checked')) {
+            $.postjson(orthanc+'/character/meta/update.php', {
+                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+        } else {
+            $.postjson(orthanc+'/character/meta/delete.php', {
+                id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
+        }
     }
 }
 
