@@ -1,13 +1,14 @@
 $(load)
 
-var orthanc = 'https://api.eosfrontier.space/orthanc'
-//var orthanc = '/orthanc'
+//var orthanc = 'https://api.eosfrontier.space/orthanc'
+var orthanc = '/orthanc'
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 var clienttoken = 'xxxx-xxxx-xxxx'
 
 var gRosters
 var gPeople = {}
 var gCharacters
+var gAccountID = 0
 var loading = {}
 var roster_type
 var person_fields
@@ -29,13 +30,15 @@ $.postjson = function(url, data, callback) {
         'context': data,
         'data': JSON.stringify(data),
         'dataType': 'json',
-        'success': callback
+        'success': callback,
     })
 }
 
 function load()
 {
     roster_type = get_cookie('roster_type')
+    loading["mycharid"] = true
+    $.ajax({'type':'GET','url':'assets/id.php', 'dataType': 'json', 'success': get_accountid, 'error': err_accountid, 'timeout': 500})
     loading["types"] = true
     $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     loading["chars"] = true
@@ -57,6 +60,18 @@ function load()
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
+}
+
+function err_accountid()
+{
+    get_accountid("0")
+}
+
+function get_accountid(accountid)
+{
+    gAccountID = parseInt(accountid)
+    loading["mycharid"] = false
+    fill_roster()
 }
 
 function fill_roster_types(rosters)
@@ -88,6 +103,7 @@ function fill_roster_fields(roster)
     character_fields = []
     for (var i = 0; i < roster.length; i++) {
         var metaname = roster[i].name
+        var metaval = roster[i].value.split(':')
         if (metaname != 'roster:type') {
             var metaset = metaname.split(':')
             var external = false
@@ -104,7 +120,6 @@ function fill_roster_fields(roster)
             } else {
                 meta_fields.push(metaname)
             }
-            var metaval = roster[i].value.split(':')
             if (metaval[0] != 0) {
                 person_fields.push({ roster_order: metaval[0], fieldname: metaname})
             }
@@ -114,6 +129,8 @@ function fill_roster_fields(roster)
             if (!external) {
                 editable_fields[metaname] = metaval[2]
             }
+        } else {
+            meta_fields.push('roster:admin:'+metaval[0])
         }
     }
     person_fields.sort(function(a,b) { return a.roster_order - b.roster_order })
@@ -160,8 +177,9 @@ function fill_roster_meta(fields)
 function fill_roster()
 {
     for (var l in loading) {
-        if (loading[l]) return;
+        if (loading[l]) return
     }
+    var canedit = false
     if (gCharacters) {
         for (var pid in gPeople) {
             for (var f = 0; f < character_fields.length; f++) {
@@ -176,6 +194,11 @@ function fill_roster()
                 for (var f = 0; f < person_fields.length; f++) {
                     var fn = person_fields[f]
                     if (person[fn]) { ppl[fn] = person[fn] }
+                }
+                if (person.accountID == gAccountID) {
+                    if (ppl['roster:admin:'+roster_type]) {
+                        canedit = true
+                    }
                 }
             }
             // $('#roster-list > .roster-entry[data-character-id="'+pid+'"]').replaceWith(roster_entry(ppl))
@@ -193,16 +216,19 @@ function fill_roster()
         if (!gPeople[pid].hasOwnProperty('character_name')) {
             delete gPeople[pid]
         } else {
-            var ren = roster_entry(gPeople[pid])
+            var ren = roster_entry(gPeople[pid], false, canedit)
             if (ren) {
                 html.push(ren)
             }
         }
     }
-    html.push(roster_entry_new())
+    if (canedit) {
+        html.push(roster_entry_new())
+    }
     $('#roster-list').html(html.join(''))
 }
 
+/*
 function fill_one_char(person)
 {
     var pid = person.characterID
@@ -213,6 +239,7 @@ function fill_one_char(person)
     }
     $('#roster-list > .roster-entry[data-character-id="'+pid+'"]').replaceWith(roster_entry(ppl))
 }
+*/
 
 function set_roster_type()
 {
@@ -240,7 +267,7 @@ function htmlize(text)
     return String(text).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
 }
 
-function roster_entry(entry, doedit)
+function roster_entry(entry, doedit, canedit)
 {
     if (!doedit) {
         for (var f in skill_fields) {
@@ -283,8 +310,12 @@ function roster_entry(entry, doedit)
         }
         html.push('<div data-field-name="',pf,'" class="roster-person-',pf,ecls,'" title="',etitle,'">',text,'</div>')
         if (f == 0) {
-            html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
-                '<div class="roster-button-delete button" title="Delete"></div></div>')
+            if (canedit) {
+                html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit"></div>',
+                    '<div class="roster-button-delete button" title="Delete"></div></div>')
+            } else {
+                html.push('<div class="dummy"></div>')
+            }
         }
     }
     html.push('</div>')
