@@ -9,6 +9,7 @@ var gRosters
 var gPeople = {}
 var gCharacters
 var gAccountID = 0
+var gIsOwner = false
 var loading = {}
 var roster_type
 var gRosterID = 0
@@ -52,7 +53,8 @@ function load()
     $('#search-input').on('keypress',keypress_searchlist)
     $('#roster-list').on('click','.roster-button-edit', edit_person)
     $('#roster-list').on('input','.editable > input', change_person_field)
-    $('#roster-list').on('change','.editable.changed > input', save_person_field)
+    $('#roster-list').on('change','.editable.changed > input[type="text"]', save_person_field)
+    $('#roster-list').on('change','.editable > input[type="checkbox"]', save_person_checkbox)
     $('#roster-list').on('click','.roster-button-delete', delete_person)
     $('#roster-list').on('click',':not(.editing) .field-conflict-choice', edit_person)
     $('#roster-list').on('click','.field-conflict-save', save_conflict)
@@ -180,6 +182,7 @@ function fill_roster()
         if (loading[l]) return
     }
     var canedit = false
+    gIsOwner = false
     if (gCharacters) {
         for (var pid in gPeople) {
             for (var f = 0; f < character_fields.length; f++) {
@@ -196,8 +199,12 @@ function fill_roster()
                     if (person[fn]) { ppl[fn] = person[fn] }
                 }
                 if (person.accountID == gAccountID) {
-                    if (ppl['roster:admin:'+gRosterID]) {
+                    var isadmin = ppl['roster:admin:'+gRosterID]
+                    if (isadmin) {
                         canedit = true
+                        if (isadmin == 'owner') {
+                            gIsOwner = true
+                        }
                     }
                 }
             }
@@ -316,6 +323,18 @@ function roster_entry(entry, doedit, canedit)
             } else {
                 html.push('<div class="dummy"></div>')
             }
+        }
+    }
+    if (doedit && gIsOwner) {
+        var iseditor = ''
+        if (gPeople[entry.characterID]) {
+            iseditor = gPeople[entry.characterID]['roster:admin:'+gRosterID]
+        }
+        if (iseditor == 'owner') {
+            html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-owner" title="Owns this roster">Owner</div>')
+        } else {
+            html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-editor editable" title="Can edit this roster">')
+            html.push('<input type="checkbox" value="editor" '+(iseditor ? ' checked' : '')+'>Editor</div>')
         }
     }
     html.push('</div>')
@@ -480,6 +499,17 @@ function edit_person()
         })
         rp.find('input').first().focus().select()
     }
+    if (gIsOwner) {
+        var iseditor = ''
+        if (gPeople[characterID]) {
+            iseditor = gPeople[characterID]['roster:admin:'+gRosterID]
+        }
+        if (iseditor == 'owner') {
+            rp.append($('<div data-field-name="roster:admin:'+gRosterID+'" class="roster-owner" title="Owns this roster">Owner</div>'))
+        } else {
+            rp.append($('<div data-field-name="roster:admin:'+gRosterID+'" class="roster-editor editable" title="Can edit this roster"><input type="checkbox" value="editor" '+(iseditor ? ' checked' : '')+'>Editor</div>'))
+        }
+    }
     rp.addClass('editing')
 }
 
@@ -527,8 +557,26 @@ function change_person_field()
     }
 }
 
+function save_person_checkbox()
+{
+    var newvalue = ''
+    if ($(this).is(':checked')) {
+        newvalue = $(this).val()
+    }
+    var field = $(this).closest('.editable')
+    var fieldname = field.attr('data-field-name')
+    var characterID = field.closest('.roster-entry').attr('data-character-id')
+    if (characterID && fieldname) {
+        $.postjson(orthanc+'/character/meta/update.php', {
+            id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+    }
+}
+
 function save_person_field()
 {
+    if ($(this).is('[type="checkbox"]')) {
+        return save_person_checkbox()
+    }
     var newvalue = $(this).val()
     var oldvalue = $(this).attr('value')
     if (oldvalue == null) { oldvalue = null }

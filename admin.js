@@ -457,7 +457,7 @@ function save_roster_entry(rids)
             if (!field_types[fieldname]) {
                 field_types[fieldname] = {}
             }
-            field_types[fieldname].fieldlabel = (input.val() || fieldname.replace('_',' '))
+            field_types[fieldname].fieldlabel = (input.val() || fieldname.replace(/_/g,' '))
         }
     })
     var old_fields = {}
@@ -609,7 +609,7 @@ function select_field_entry()
 
 function labeltoname(label)
 {
-    return 'roster:'+label.replace(/[^A-Za-z0-9]+/, '_').toLowerCase()
+    return 'roster:'+label.replace(/[^A-Za-z0-9]+/g, '_').toLowerCase()
 }
 
 function add_new_search_field()
