@@ -569,7 +569,7 @@ function save_person_checkbox()
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
         } else {
             $.postjson(orthanc+'/character/meta/delete.php', {
-                id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
+                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
         }
     }
 }
