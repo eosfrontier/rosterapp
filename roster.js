@@ -1,7 +1,7 @@
 $(load)
 
-//var orthanc = 'https://api.eosfrontier.space/orthanc'
-var orthanc = '/orthanc'
+var orthanc = 'https://api.eosfrontier.space/orthanc'
+//var orthanc = '/orthanc'
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 var clienttoken = 'xxxx-xxxx-xxxx'
 
@@ -11,6 +11,7 @@ var gCharacters
 var gAccountID = 0
 var loading = {}
 var roster_type
+var gRosterID = 0
 var person_fields
 var skill_fields
 var extra_fields
@@ -36,7 +37,7 @@ $.postjson = function(url, data, callback) {
 
 function load()
 {
-    roster_type = get_cookie('roster_type')
+    gRosterID = get_cookie('roster_id')
     loading["mycharid"] = true
     $.ajax({'type':'GET','url':'assets/id.php', 'dataType': 'json', 'success': get_accountid, 'error': err_accountid, 'timeout': 500})
     loading["types"] = true
@@ -44,7 +45,6 @@ function load()
     loading["chars"] = true
     $.postjson(orthanc+'/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
-    $('span.roster-type').text(roster_type)
     $('#search-person-list').on('click','.search-person', add_new_person)
     $(document).click(hide_popups)
     $('#add-person-popup').click(function(e) { e.stopPropagation() })
@@ -77,18 +77,16 @@ function get_accountid(accountid)
 function fill_roster_types(rosters)
 {
     var html = []
-    var rid = 0
     for (var i = 0; i < rosters.length; i++) {
         var rt = rosters[i].value.split(':')[0]
         html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,'" data-roster-id="',rosters[i].character_id,'">',rt,' roster</div>')
-        if (rt == roster_type) rid = rosters[i].character_id
 
     }
     loading["types"] = false
     $('#headermenu-list').html(html.join(''))
-    if (rid != 0) {
+    if (gRosterID != 0) {
         loading["roster"] = true
-        $.postjson(orthanc+'/character/meta/', {'id':rid}, fill_roster_fields)
+        $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)
     } else {
         $('.menu-button').addClass('visible') 
     }
@@ -130,7 +128,9 @@ function fill_roster_fields(roster)
                 editable_fields[metaname] = metaval[2]
             }
         } else {
-            meta_fields.push('roster:admin:'+metaval[0])
+            meta_fields.push('roster:admin:'+this.id)
+            roster_type = metaval[0]
+            $('span.roster-type').text(roster_type)
         }
     }
     person_fields.sort(function(a,b) { return a.roster_order - b.roster_order })
@@ -196,7 +196,7 @@ function fill_roster()
                     if (person[fn]) { ppl[fn] = person[fn] }
                 }
                 if (person.accountID == gAccountID) {
-                    if (ppl['roster:admin:'+roster_type]) {
+                    if (ppl['roster:admin:'+gRosterID]) {
                         canedit = true
                     }
                 }
@@ -244,13 +244,13 @@ function fill_one_char(person)
 function set_roster_type()
 {
     roster_type = $(this).attr('data-roster-type')
-    roster_id = $(this).attr('data-roster-id')
+    gRosterID = $(this).attr('data-roster-id')
     $('span.roster-type').text(roster_type)
-    set_cookie('roster_type', roster_type)
+    set_cookie('roster_id', gRosterID)
     $('#roster-list').text('Loading '+roster_type+' roster')
     loading["chars"] = true
     loading["roster"] = true
-    $.postjson(orthanc+'/character/meta/', {'id':roster_id}, fill_roster_fields)
+    $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)
     $.postjson(orthanc+'/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     setTimeout(hide_popups, 0)
 }

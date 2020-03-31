@@ -4,12 +4,15 @@ var orthanc = 'https://api.eosfrontier.space/orthanc'
 //var orthanc = '/orthanc'
 var clienttoken = 'xxxx-xxxx-xxxx'
 
+
 var default_field_types = {
    "roster:character:faction": { fieldlabel: "Faction", field_external_table: true },
    "roster:character:rank": { fieldlabel: "Rank", field_external_table: true }
 }
 
-
+var gMyCharID = 0
+var gAdminList = []
+var gAccountACL = []
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
 var roster_field_types = {}
@@ -29,6 +32,7 @@ $.postjson = function(url, data, callback, context) {
 
 function load()
 {
+    $.ajax({'type':'GET','url':'assets/id.php', 'dataType': 'json', 'success': get_accountid})
     $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
@@ -57,12 +61,54 @@ function load()
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
 }
 
+function get_accountid(accountid)
+{
+    var accountid = parseInt(accountid)
+    if (accountid) {
+        $.postjson(orthanc+'/character/', { 'accountID': accountid }, get_my_charid)
+    }
+}
+
+function get_my_charid(chardata)
+{
+    gMyCharID = chardata.characterID
+    get_accountacl()
+}
+
+function get_accountacl()
+{
+    if (gMyCharID && gAdminList) {
+        $.postjson(orthanc+'/character/meta/', { 'id': gMyCharID, 'meta': gAdminList.join(',') }, set_accountacl)
+    }
+}
+
+function set_accountacl(acl)
+{
+    if (acl) {
+        gAccountACL = acl
+    }
+    for (var i = 0; i < gAccountACL.length; i++) {
+        var acle = gAccountACL[i]
+        if (acle.value == "owner") {
+            var acln = acle.name.split(':')
+            if (acln[0] == 'roster' && acln[1] == 'admin') {
+                var aclid = parseInt(acln[2])
+                $('#roster-list > .roster-entry[data-roster-id="'+aclid+'"] > .roster-buttons-disabled').addClass('roster-buttons').html(
+                    '<div class="roster-button-edit button" title="Edit roster"></div>'+
+                    '<div class="roster-button-delete button" title="Delete roster"></div>'+
+                    '<div class="roster-button-save button disabled" title="Update / Store"></div>')
+            }
+        }
+    }
+}
+
 function fill_roster_list(roster_list)
 {
     var mhtml = []
     var html = []
     field_types = $.extend(true, {}, default_field_types)
     roster_field_types = {}
+    gAdminList = []
     for (var t = 0; t < roster_list.length; t++) {
         var rid = roster_list[t].character_id
         var rtent = roster_list[t].value.split(':')
@@ -74,10 +120,12 @@ function fill_roster_list(roster_list)
                 'status': { 'order': 0, 'fieldtype': 0 }
             }
         }
-        mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'">',rt.roster_type,' roster</div>')
+        mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'" data-roster-id="',rt.rosterID,'">',rt.roster_type,' roster</div>')
         html.push(roster_entry(rt))
         $.postjson(orthanc+'/character/meta/', { 'id': rid }, fill_roster_entry)
+        gAdminList.push('roster:admin:'+rid)
     }
+    get_accountacl()
     html.push(roster_entry({
         roster_type: "new type",
         fields: {
@@ -149,12 +197,13 @@ function fill_fields()
         html.push('<div class="',cls,'" data-fieldname="',ft,'" title="',ft,'">',field_types[ft].fieldlabel,'</div>')
     }
     $('#search-field-list').html(html.join(''))
+    set_accountacl()
 }
 
 function set_roster_type()
 {
-    roster_type = $(this).attr('data-roster-type')
-    set_cookie('roster_type', roster_type)
+    roster_id = $(this).attr('data-roster-id')
+    set_cookie('roster_id', roster_id)
     window.location = '../roster/'
 }
 
@@ -192,9 +241,13 @@ function roster_entry(entry, newroster)
         html.push(htmlize(entry.roster_type))
     }
     html.push('</div></div></div>')
-    html.push('<div class="roster-buttons"><div class="roster-button-edit button" title="Edit roster"></div>')
-    html.push('<div class="roster-button-delete button',(newroster && ' disabled'),'" title="Delete roster"></div>')
-    html.push('<div class="roster-button-save button disabled" title="Update / Store"></div></div>')
+    html.push('<div class="roster-buttons'+(newroster ? '' : '-disabled')+'">')
+    if (newroster) {
+        html.push('<div class="roster-button-edit button" title="Edit roster"></div>')
+        html.push('<div class="roster-button-delete button',(newroster && ' disabled'),'" title="Delete roster"></div>')
+        html.push('<div class="roster-button-save button disabled" title="Update / Store"></div>')
+    }
+    html.push('</div>')
     html.push('<div class="roster-field-roster_description">')
     if (newroster) {
     } else {
@@ -375,6 +428,7 @@ function save_roster()
 
 function save_roster_entry(rids)
 {
+    if (!gMyCharID) return
     var re = $(this).closest('.roster-entry')
     var roster_type = inputval_or_text(re.find('.roster-field-roster_type .field-text'))
     var roster_desc = inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
@@ -433,7 +487,10 @@ function save_roster_entry(rids)
             id: rosterID, meta: fields_todelete }, cleaned_roster)
     }
     $.postjson(orthanc+'/character/meta/update.php', {
-        id: rosterID, meta: savefields }, saved_roster)
+        id: gMyCharID, meta: [{'name':'roster:admin:'+rosterID, 'value':'owner'}]}, function() {
+            $.postjson(orthanc+'/character/meta/update.php', {
+                id: rosterID, meta: savefields }, saved_roster)
+            })
     var savebutton = re.find('.roster-button-save')
     savebutton.addClass('disabled')
 }
