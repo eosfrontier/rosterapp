@@ -2,8 +2,6 @@ $(load)
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
 //var orthanc = '/orthanc'
-var clienttoken = 'xxxx-xxxx-xxxx'
-
 
 var default_field_types = {
    "roster:character:faction": { fieldlabel: "Faction", field_external_table: true },
