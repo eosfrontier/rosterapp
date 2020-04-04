@@ -13,8 +13,9 @@ var loading = {}
 var roster_type
 var gRosterID = 0
 var person_fields
-var skill_fields
-var extra_fields
+var primary_fields
+var multi_fields = {}
+var sort_field
 var special_fields = { character_image:'<div><img src="'+mugserver+'{{characterID}}.jpg"></div>' }
 var special_fieldsnew = { character_image:'<div><div class="image-add-new">+</div></div>' }
 var editable_fields
@@ -96,7 +97,10 @@ function fill_roster_types(rosters)
 function fill_roster_fields(roster)
 {
     person_fields = []
-    skill_fields = {}
+    primary_fields = {}
+    multi_fields = {}
+    sort_field = 'character_name'
+    sort_reverse = false
     editable_fields = {}
     meta_fields = []
     character_fields = []
@@ -119,11 +123,20 @@ function fill_roster_fields(roster)
             } else {
                 meta_fields.push(metaname)
             }
-            if (metaval[0] != 0) {
-                person_fields.push({ roster_order: metaval[0], fieldname: metaname})
+            if (parseInt(metaval[0]) != 0) {
+                person_fields.push({ roster_order: parseInt(metaval[0]), fieldname: metaname})
             }
-            if (metaval[1] == 'P') {
-                skill_fields[metaname] = true
+            if (metaval[1].indexOf('P') >= 0) {
+                primary_fields[metaname] = true
+            }
+            if (metaval[1].indexOf('M') >= 0) {
+                multi_fields[metaname] = true
+            }
+            if (metaval[1].indexOf('S') >= 0) {
+                sort_field = metaname
+            }
+            if (metaval[1].indexOf('SD') >= 0) {
+                sort_reverse = true
             }
             if (!external) {
                 editable_fields[metaname] = metaval[2]
@@ -165,6 +178,7 @@ function fill_roster_meta(fields)
             }
         }
     }
+    // Reverse order: newest first
     fields.sort(function(a,b) { return b.id - a.id })
     // gPeople = {}
     for (var pid in gPeople) {
@@ -230,9 +244,12 @@ function fill_roster()
     var html = []
     var plist = []
     for (var pid in gPeople) {
-        plist.push({ id: pid, name: gPeople[pid].character_name })
+        var key = gPeople[pid][sort_field]
+        if (Array.isArray(key)) { key = key[0] }
+        plist.push({ id: pid, key: key })
     }
-    plist.sort(function(a,b) { return a.name.localeCompare(b.name) })
+    plist.sort(function(a,b) { return a.key.localeCompare(b.key) })
+    if (sort_reverse) { plist.reverse() }
 
     for (var p = 0; p < plist.length; p++) {
         pid = plist[p].id
@@ -293,7 +310,7 @@ function htmlize(text)
 function roster_entry(entry, doedit, canedit)
 {
     if (!doedit) {
-        for (var f in skill_fields) {
+        for (var f in primary_fields) {
             if (entry[f] == null) {
                 return
             }
@@ -309,7 +326,13 @@ function roster_entry(entry, doedit, canedit)
         var ecls = ''
         var etitle = ''
         if (Array.isArray(text)) {
-            if (canedit) {
+            if (multi_fields[pf]) {
+                if (pf == sort_field) {
+                    text.sort(function(a,b) { return a.localeCompare(b) })
+                    if (sort_reverse) { text.reverse() }
+                }
+                text = text.map(htmlize).join('</div><div class="roster-person-'+pf+'">')
+            } else if (canedit) {
                 text = '<div class="field-conflict-choice selected">'+text.map(htmlize).join('</div><div class="field-conflict-choice">')+'</div>'
                 ecls += ' field-conflict'
                 etitle = 'Conflicting edits, please resolve!'
@@ -330,7 +353,7 @@ function roster_entry(entry, doedit, canedit)
                 } else {
                     text = '<input type="text" placeholder="'+ef+'" value="'+text+'">'
                 }
-                if (skill_fields[pf]) {
+                if (primary_fields[pf]) {
                     ecls += ' initial'
                 }
             }
@@ -663,7 +686,7 @@ function delete_person()
             if (confirm("Remove "+name+" from "+roster_type+" roster?")) {
                 rp.find('.editable[data-field-name]').each(function() {
                     var fieldname = $(this).attr('data-field-name')
-                    if (skill_fields[fieldname]) {
+                    if (primary_fields[fieldname]) {
                         var oldvalue = ''
                         var input = $(this).find('input')
                         if (input.length == 1) {
