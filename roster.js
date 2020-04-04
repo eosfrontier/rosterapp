@@ -158,6 +158,12 @@ function fill_roster_meta(fields)
 {
     for (var p = 0; p < fields.length; p++) {
         fields[p].id = parseInt(fields[p].id)
+        if ((fields[p].character_id < 0) && (fields[p].character_id != gRosterID)) {
+            var fv = fields[p].value.split(':')
+            if (fv[1] != '') {
+                delete editable_fields[fields[p].name]
+            }
+        }
     }
     fields.sort(function(a,b) { return b.id - a.id })
     // gPeople = {}
