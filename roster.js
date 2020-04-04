@@ -156,6 +156,10 @@ function fill_roster_chars(people)
 
 function fill_roster_meta(fields)
 {
+    for (var p = 0; p < fields.length; p++) {
+        fields[p].id = parseInt(fields[p].id)
+    }
+    fields.sort(function(a,b) { return b.id - a.id })
     // gPeople = {}
     for (var pid in gPeople) {
         for (var f = 0; f < meta_fields.length; f++) {
@@ -168,7 +172,14 @@ function fill_roster_meta(fields)
             if (!gPeople[pid]) {
                 gPeople[pid] = { characterID: pid }
             }
-            gPeople[pid][fields[p].name] = fields[p].value
+            if (gPeople[pid][fields[p].name]) {
+                if (!Array.isArray(gPeople[pid][fields[p].name])) {
+                    gPeople[pid][fields[p].name] = [gPeople[pid][fields[p].name]]
+                }
+                gPeople[pid][fields[p].name].push(fields[p].value)
+            } else {
+                gPeople[pid][fields[p].name] = fields[p].value
+            }
         }
     }
     loading["meta"] = false
@@ -292,9 +303,13 @@ function roster_entry(entry, doedit, canedit)
         var ecls = ''
         var etitle = ''
         if (Array.isArray(text)) {
-            text = '<div class="field-conflict-choice selected">'+text.map(htmlize).join('</div><div class="field-conflict-choice">')+'</div>'
-            ecls += ' field-conflict'
-            etitle = 'Conflicting edits, please resolve!'
+            if (canedit) {
+                text = '<div class="field-conflict-choice selected">'+text.map(htmlize).join('</div><div class="field-conflict-choice">')+'</div>'
+                ecls += ' field-conflict'
+                etitle = 'Conflicting edits, please resolve!'
+            } else {
+                text = htmlize(text[0])
+            }
         } else {
             text = htmlize(text)
         }
@@ -565,7 +580,7 @@ function save_person_checkbox()
     if (characterID && fieldname) {
         if ($(this).is(':checked')) {
             $.postjson(orthanc+'/character/meta/update.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+                id: characterID, meta: [{ name: fieldname, value: newvalue, oldvalue: newvalue }] }, saved_person_field)
         } else {
             $.postjson(orthanc+'/character/meta/delete.php', {
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
@@ -588,7 +603,7 @@ function save_person_field()
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
             $.postjson(orthanc+'/character/meta/update.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+                id: characterID, meta: [{ name: fieldname, value: newvalue, oldvalue: oldvalue }] }, saved_person_field)
         }
     }
 }
@@ -603,34 +618,8 @@ function saved_person_field(result)
                 entry.addClass('deleted')
                 field.text('')
             } else {
-                var input = field.find("input")
-                var fv = this.meta[i].value
-                input.attr('value', fv)
-                if (field.hasClass('initial')) {
-                    field.removeClass('initial')
-                } else {
-                    field.addClass('saved')
-                }
-                if (input.val() == fv) {
-                    field.removeClass('changed')
-                } else {
-                    field.addClass('changed')
-                }
-            }
-        }
-    }
-    if (result.characterID) {
-        var entry = $("#roster-list .roster-entry[data-character-id='"+result.characterID+"']")
-        var field = entry.find(".editable[data-field-name='"+result.fieldname+"']")
-        if (result.error) {
-            show_message(result.error, 'error')
-            field.addClass('error')
-        }
-        if (result.result) {
-            show_message(result.result, 'result')
-            if (result.newvalue == null) {
                 if (field.hasClass('field-conflict')) {
-                    field.find(".field-conflict-choose:has(input[data-fieldvalue='"+result.oldvalue+"'])").remove()
+                    field.find(".field-conflict-choose:has(input[data-fieldvalue='"+this.meta[i].value+"'])").remove()
                     if (field.find('.field-conflict-choose').length <= 1) {
                         field.removeClass('field-conflict').addClass('field-conflict-resolved').attr('title','')
                     }
@@ -638,22 +627,19 @@ function saved_person_field(result)
                         entry.removeClass('editing')
                     }
                 } else {
-                    entry.addClass('deleted')
-                    field.text('')
-                }
-            } else {
-                var input = field.find("input")
-                var fv = result.fieldvalue
-                input.attr('value', fv)
-                if (field.hasClass('initial')) {
-                    field.removeClass('initial')
-                } else {
-                    field.addClass('saved')
-                }
-                if (input.val() == fv) {
-                    field.removeClass('changed')
-                } else {
-                    field.addClass('changed')
+                    var input = field.find("input")
+                    var fv = this.meta[i].value
+                    input.attr('value', fv)
+                    if (field.hasClass('initial')) {
+                        field.removeClass('initial')
+                    } else {
+                        field.addClass('saved')
+                    }
+                    if (input.val() == fv) {
+                        field.removeClass('changed')
+                    } else {
+                        field.addClass('changed')
+                    }
                 }
             }
         }
@@ -696,7 +682,7 @@ function save_conflict()
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
         $.postjson(orthanc+'/character/meta/delete.php', {
-            id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
+            id: characterID, meta: [{ name: fieldname, value: oldvalue }] }, saved_person_field)
     })
 }
 
