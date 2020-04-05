@@ -11,6 +11,7 @@ var gAccountID = 0
 var gIsOwner = false
 var loading = {}
 var roster_type
+var roster_label = 'roster'
 var gRosterID = 0
 var person_fields
 var primary_fields
@@ -80,8 +81,13 @@ function fill_roster_types(rosters)
 {
     var html = []
     for (var i = 0; i < rosters.length; i++) {
-        var rt = rosters[i].value.split(':')[0]
-        html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,'" data-roster-id="',rosters[i].character_id,'">',rt,' roster</div>')
+        var rtv = rosters[i].value.split(':')
+        var rt = rtv[0]
+        var rl = 'roster'
+        if (rtv.length > 2 && rtv[1] != '') { rl = rtv[1] }
+        html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,
+            '" data-roster-label="',rl,'" data-roster-id="',
+            rosters[i].character_id,'">',rt,' ',rl,'</div>')
 
     }
     loading["types"] = false
@@ -129,8 +135,11 @@ function fill_roster_fields(roster)
             if (metaval[1].indexOf('P') >= 0) {
                 primary_fields[metaname] = true
             }
-            if (metaval[1].indexOf('M') >= 0) {
-                multi_fields[metaname] = true
+            var midx = metaval[1].indexOf('M')
+            if (midx >= 0) {
+                var mmax = parseInt(metaval[1].slice(midx+1))
+                if (!mmax) mmax = 0
+                multi_fields[metaname] = mmax
             }
             if (metaval[1].indexOf('S') >= 0) {
                 sort_field = metaname
@@ -144,7 +153,12 @@ function fill_roster_fields(roster)
         } else {
             meta_fields.push('roster:admin:'+this.id)
             roster_type = metaval[0]
+            roster_label = 'roster'
+            if (metaval.length > 2 && metaval[1] != '') {
+                roster_label = metaval[1]
+            }
             $('span.roster-type').text(roster_type)
+            $('span.roster-label').text(roster_label)
         }
     }
     person_fields.sort(function(a,b) { return a.roster_order - b.roster_order })
@@ -284,10 +298,12 @@ function fill_one_char(person)
 function set_roster_type()
 {
     roster_type = $(this).attr('data-roster-type')
+    roster_label = $(this).attr('data-roster-label')
     gRosterID = $(this).attr('data-roster-id')
     $('span.roster-type').text(roster_type)
+    $('span.roster-label').text(roster_label)
     set_cookie('roster_id', gRosterID)
-    $('#roster-list').text('Loading '+roster_type+' roster')
+    $('#roster-list').text('Loading '+roster_type+' '+roster_label)
     loading["chars"] = true
     loading["roster"] = true
     $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)
@@ -326,11 +342,12 @@ function roster_entry(entry, doedit, canedit)
         var ecls = ''
         var etitle = ''
         if (Array.isArray(text)) {
-            if (multi_fields[pf]) {
+            if (multi_fields[pf] != null) {
                 if (pf == sort_field) {
                     text.sort(function(a,b) { return a.localeCompare(b) })
                     if (sort_reverse) { text.reverse() }
                 }
+                if (multi_fields[pf] > 0) { text = text.slice(0,multi_fields[pf]) }
                 text = text.map(htmlize).join('</div><div class="roster-person-'+pf+'">')
             } else if (canedit) {
                 text = '<div class="field-conflict-choice selected">'+text.map(htmlize).join('</div><div class="field-conflict-choice">')+'</div>'
@@ -683,7 +700,7 @@ function delete_person()
         if (characterID) {
             var name = rp.find("[data-field-name='character_name']").text()
             if (!name) { name = rp.find("[data-field-name='character_name'] input").val() }
-            if (confirm("Remove "+name+" from "+roster_type+" roster?")) {
+            if (confirm("Remove "+name+" from "+roster_type+" "+roster_label+"?")) {
                 rp.find('.editable[data-field-name]').each(function() {
                     var fieldname = $(this).attr('data-field-name')
                     if (primary_fields[fieldname]) {

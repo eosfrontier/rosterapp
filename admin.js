@@ -113,12 +113,14 @@ function fill_roster_list(roster_list)
         var rt = {
             rosterID: rid,
             roster_type: rtent[0],
-            roster_description: rtent.slice(1).join(':'),
+            roster_description: rtent.slice(1).join(':').replace(/^:/,''),
             fields: {
                 'status': { 'order': 0, 'fieldtype': 0 }
             }
         }
-        mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'" data-roster-id="',rt.rosterID,'">',rt.roster_type,' roster</div>')
+        var roster_label = 'roster'
+        if (rtent.length > 2 && rtent[1] != '') { roster_label = rtent[1] }
+        mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'" data-roster-id="',rt.rosterID,'">',rt.roster_type,' '+roster_label+'</div>')
         html.push(roster_entry(rt))
         $.postjson(orthanc+'/character/meta/', { 'id': rid }, fill_roster_entry)
         gAdminList.push('roster:admin:'+rid)
@@ -149,7 +151,7 @@ function fill_roster_entry(fields)
         var rtent = entry.value.split(':')
         if (entry.name == 'roster:type') {
             rt['roster_type'] = rtent[0]
-            rt['roster_description'] = rtent.slice(1).join(':')
+            rt['roster_description'] = rtent.slice(1).join(':').replace(/^:/,'')
         } else {
             var rtnm = entry.name.split(':')
             var external = false
@@ -430,8 +432,9 @@ function save_roster_entry(rids)
     var re = $(this).closest('.roster-entry')
     var roster_type = inputval_or_text(re.find('.roster-field-roster_type .field-text'))
     var roster_desc = inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
+    if (!roster_desc.match(/^[a-z]+:/)) { roster_desc = ':'+roster_desc }
     var savefields = [
-        { "name": "roster:type", "value": roster_type+":"+roster_desc }
+        { "name": "roster:type", "value": roster_type+':'+roster_desc }
     ]
     var rosterID = re.attr('data-roster-id')
     if (!rosterID) {
