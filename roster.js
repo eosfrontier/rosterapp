@@ -172,6 +172,7 @@ function fill_roster_fields(roster)
 
 function fill_roster_chars(people)
 {
+    people.filter(function(p) { return a.character_name })
     people.sort(function(a,b) { return (a.character_name < b.character_name) ? -1 : 1 })
     gCharacters = people
     loading["chars"] = false
