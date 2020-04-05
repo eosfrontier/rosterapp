@@ -20,7 +20,7 @@ $.postjson = function(url, data, callback, context) {
     $.ajax({
         'type': 'POST',
         'url': url,
-        'contentType': 'application/json',
+        'contentType': 'text/plain',
         'context': context ? context : data,
         'data': JSON.stringify(data),
         'dataType': 'json',
