@@ -84,7 +84,7 @@ function fill_roster_types(rosters)
         var rtv = rosters[i].value.split(':')
         var rt = rtv[0]
         var rl = 'roster'
-        if (rtv.length > 2 && rtv[1] != '') { rl = rtv[1] }
+        if (rtv[2] != '') { rl = rtv[2] }
         html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,
             '" data-roster-label="',rl,'" data-roster-id="',
             rosters[i].character_id,'">',rt,' ',rl,'</div>')
@@ -154,9 +154,7 @@ function fill_roster_fields(roster)
             meta_fields.push('roster:admin:'+this.id)
             roster_type = metaval[0]
             roster_label = 'roster'
-            if (metaval.length > 2 && metaval[1] != '') {
-                roster_label = metaval[1]
-            }
+            if (metaval[2] != '') { roster_label = metaval[2] }
             $('span.roster-type').text(roster_type)
             $('span.roster-label').text(roster_label)
         }
