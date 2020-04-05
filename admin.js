@@ -24,6 +24,7 @@ $.postjson = function(url, data, callback, context) {
         'context': context ? context : data,
         'data': JSON.stringify(data),
         'dataType': 'json',
+        'error': function(xhr,stat,err) { if (xhr.status == 404) { callback([]) } },
         'success': callback
     })
 }
