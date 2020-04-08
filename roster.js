@@ -1,4 +1,4 @@
-$(load)
+$.get('assets/id.php', load, 'json')
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
 //var orthanc = '/orthanc'
@@ -23,6 +23,7 @@ var editable_fields
 var meta_fields = []
 var character_fields = []
 var search_value = ''
+var clienttoken
 
 $.postjson = function(url, data, callback) {
     data['token'] = clienttoken
@@ -37,11 +38,13 @@ $.postjson = function(url, data, callback) {
     })
 }
 
-function load()
+function load(idandtoken)
 {
+    clienttoken = idandtoken.token
+    if (!clienttoken) { return }
+    $('#nologin').remove()
+    gAccountID = parseInt(idandtoken.id)
     gRosterID = get_cookie('roster_id')
-    loading["mycharid"] = true
-    $.ajax({'type':'GET','url':'assets/id.php', 'dataType': 'json', 'success': get_accountid, 'error': err_accountid, 'timeout': 500})
     loading["types"] = true
     $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     loading["chars"] = true
@@ -63,18 +66,6 @@ function load()
     $('.menu-button').click(show_menu)
     $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
-}
-
-function err_accountid()
-{
-    get_accountid("0")
-}
-
-function get_accountid(accountid)
-{
-    gAccountID = parseInt(accountid)
-    loading["mycharid"] = false
-    fill_roster()
 }
 
 function fill_roster_types(rosters)
@@ -258,8 +249,10 @@ function fill_roster()
     var plist = []
     for (var pid in gPeople) {
         var key = gPeople[pid][sort_field]
-        if (Array.isArray(key)) { key = key[0] }
-        plist.push({ id: pid, key: key })
+        if (key) {
+            if (Array.isArray(key)) { key = key[0] }
+            plist.push({ id: pid, key: key })
+        }
     }
     plist.sort(function(a,b) { return a.key.localeCompare(b.key) })
     if (sort_reverse) { plist.reverse() }
@@ -302,7 +295,7 @@ function set_roster_type()
     $('span.roster-type').text(roster_type)
     $('span.roster-label').text(roster_label)
     set_cookie('roster_id', gRosterID)
-    $('#roster-list').text('Loading '+roster_type+' '+roster_label)
+    $('#roster-list').html('<h3 class="loading">'+htmlize('Loading '+roster_type+' '+roster_label)+'</h3>')
     loading["chars"] = true
     loading["roster"] = true
     $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)

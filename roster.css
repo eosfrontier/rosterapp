@@ -25,6 +25,24 @@ body {
     padding: 0;
 }
 
+a#nologin {
+    display: block;
+    position: fixed;
+    z-index: 100;
+    width: 40vw;
+    height: 5vw;
+    top: calc(50vh - 5vw);
+    left: 30vw;
+    background-color: #520;
+    border-radius: 20px;
+    border: 2px solid #832;
+    color: #eb5;
+    text-decoration: none;
+    padding: 10px;
+    font-size: 2vw;
+    text-align: center;
+}
+
 #headerframe {
     flex: initial;
     width: 100%;
@@ -43,6 +61,10 @@ body {
     color: #D1E8E2;
     margin: auto; 
     text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
+}
+
+#main-body .loading {
+    margin: 40px;
 }
 
 #header .header-text {
@@ -214,7 +236,7 @@ body {
     margin-bottom: 0px;
 
     min-height: 180px;
-    min-width: 400px;
+    width: 400px;
 }
 
 .roster-entry:nth-child(odd) {
@@ -249,6 +271,8 @@ body {
     color: #10c6de;
     text-shadow: 0px 0px 4px #10c6de;
     grid-column: 2;
+    width: 350px;
+    white-space: nowrap;
 }
 
 .roster-entry .field-conflict {
@@ -400,7 +424,7 @@ body {
 }
 
 .roster-entry:nth-child(odd) > div:nth-child(3) {
-    transform: translate(63px, 0px);
+    transform: translate(0px, 0px);
     padding-right: 5px;
     height: 40px;
 }
@@ -423,7 +447,7 @@ body {
 }
 
 .roster-entry:nth-child(odd) > div:nth-child(n+4) {
-    transform: translate(33px, -6px);
+    transform: translate(-27px, -6px);
     padding-right: 0px;
     padding-top: 2px;
     min-height: 20px;

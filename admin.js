@@ -1,4 +1,4 @@
-$(load)
+$.get('assets/id.php', load, 'json')
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
 //var orthanc = '/orthanc'
@@ -14,6 +14,7 @@ var gAccountACL = []
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
 var roster_field_types = {}
+var clienttoken
 
 $.postjson = function(url, data, callback, context) {
     data['token'] = clienttoken
@@ -29,9 +30,12 @@ $.postjson = function(url, data, callback, context) {
     })
 }
 
-function load()
+function load(idandtoken)
 {
-    $.ajax({'type':'GET','url':'assets/id.php', 'dataType': 'json', 'success': get_accountid})
+    clienttoken = idandtoken.token
+    if (!clienttoken) { return }
+    $('#nologin').remove()
+    get_accountid(idandtoken.id)
     $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)

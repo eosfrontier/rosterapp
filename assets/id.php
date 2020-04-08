@@ -21,6 +21,13 @@
             $user = JFactory::getUser();
         }
     }
-	echo json_encode($user->get('id'));
+    if ($user->get('guest')) {
+        http_response_code(403);
+        echo "User not logged in";
+        die();
+    } else {
+        $token = trim(file_get_contents("token.txt"));
+        echo json_encode(array(id => $user->get('id'), token => $token));
+    }
 	
 ?>
