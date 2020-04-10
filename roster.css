@@ -438,7 +438,7 @@ a#nologin {
     width: 100px;
     height: 20px;
     top: 20px;
-    right: -30px;
+    right: -27px;
     clip-path: polygon(calc(100% - 15px * 1.732) calc(100% - 15px), calc(100% - 2px) 100%, 100% calc(100% - 1px),
         calc(100% - 1px) calc(100% - 2px), calc(100% - 15px * 1.732) calc(100% - 17px), calc(100% - 30px) calc(100% - 17px),
         calc(100% - 40px) calc(100% - 17px), 0% calc(100% - 17px), 0% calc(100% - 15px), calc(100% - 40px) calc(100% - 15px),
@@ -1239,11 +1239,11 @@ body.admin .roster-entry.disabled {
     }
     .roster-entry:nth-child(odd) {
         grid-template-columns: auto;
-        transform: translate(calc(100vw - 490px)) !important;
+        transform: translate(calc(100vw - 485px)) !important;
     }
     .roster-entry:nth-child(odd) > .roster-field-roster_type,
     .roster-entry:nth-child(odd) > .roster-person-character_image {
-        transform: none;
+        transform: translate(-3px,0);
     }
     /*
     .roster-entry:nth-child(odd) > div:nth-child(3) {
@@ -1313,3 +1313,4 @@ body.admin .roster-entry.disabled {
 ::-webkit-scrollbar-thumb {
     background-color: #114852;
 }
+
