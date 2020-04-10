@@ -222,7 +222,7 @@ a#nologin {
     display: flex;
     flex-wrap: wrap;
     align-items: start;
-    justify-content: center;
+    justify-content: start;
 }
 
 .roster-entry {
@@ -234,6 +234,7 @@ a#nologin {
     padding: 5px;
     margin: 0px;
     margin-bottom: 0px;
+    margin-left: 10px;
 
     min-height: 180px;
     width: 400px;
@@ -1219,9 +1220,6 @@ body.admin .roster-entry.disabled {
     #footerframe {
         display: none;
     }
-    #roster-list {
-        justify-content: start;
-}
     .roster-entry {
         /* width: calc(50vw - 40px) !important; */
     }
@@ -1313,4 +1311,3 @@ body.admin .roster-entry.disabled {
 ::-webkit-scrollbar-thumb {
     background-color: #114852;
 }
-
