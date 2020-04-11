@@ -200,21 +200,9 @@ a#nologin {
 }
 
 #main-body {
-    width:900px;
     flex: auto;
-    position: relative;
     color: #D9B08C;
-    // background: #262626;
     background: #112233;
-    border: 2px solid #116466;
-    margin: auto;
-    padding: 0;
-    overflow: hidden; 
-    overflow-y: auto;
-    border-radius: 20px 0 0 20px;
-    box-shadow: 0 0 5px #111;
-    scrollbar-color: #114852 transparent;
-    scrollbar-width: thin;
 }
 
 
@@ -223,6 +211,8 @@ a#nologin {
     flex-wrap: wrap;
     align-items: start;
     justify-content: start;
+    overflow: hidden;
+    padding-bottom: 100px;
 }
 
 .roster-entry {
@@ -728,7 +718,7 @@ a#nologin {
     background: linear-gradient(0deg, rgba(17, 104, 98, 0.5), #111111);
     border-left: 0px solid #116862;
     position: absolute;
-    z-index: 50;
+    z-index: 10;
     right: -48px;
     transition: width 400ms ease-out;
     overflow: hidden;
@@ -773,10 +763,12 @@ a#nologin {
     left: auto;
 }
 
+/*
 .roster-entry .roster-field-roster_type,
 .roster-entry .roster-person-character_image {
     z-index: 40;
 }
+*/
 
 .roster-entry:not(.editing):not(.disabled) .roster-buttons:hover,
 body.admin .roster-entry:not(.disabled) .roster-buttons:hover,
@@ -1195,7 +1187,30 @@ body.admin .roster-entry.disabled {
     color: #40f3ff;
 }
 
+@media only screen and (min-width: 914px) {
+    #main-body {
+        width:900px;
+        position: relative;
+        // background: #262626;
+        border: 2px solid #116466;
+        margin: auto;
+        padding: 0;
+        overflow: hidden; 
+        overflow-y: auto;
+        border-radius: 20px 0 0 20px;
+        box-shadow: 0 0 5px #111;
+        scrollbar-color: #114852 transparent;
+        scrollbar-width: thin;
+    }
+}
+
 @media only screen and (max-width: 914px) {
+    body {
+        color: #D9B08C;
+        background: #112233;
+        overflow-x: hidden;
+        width: 100vw;
+    }
     #headerframe {
         z-index: 10;
         position: fixed;
@@ -1209,8 +1224,6 @@ body.admin .roster-entry.disabled {
     #main-body {
         width: 900px;
         position: relative;
-        overflow-x: none;
-        overflow-y: auto;
         border: 0;
         padding: 0;
         margin: 0;
@@ -1224,7 +1237,7 @@ body.admin .roster-entry.disabled {
         /* width: calc(50vw - 40px) !important; */
     }
 }
-@media only screen and (max-width: 650px) {
+@media only screen and (max-width: 599px) {
     #main-body {
         width: 100vw;
         left: 0px;
@@ -1251,17 +1264,6 @@ body.admin .roster-entry.disabled {
         width: calc(100vw - 208px);
     }
     */
-}
-
-/*
-@media only screen and (min-width: 1600px) {
-    #main-body {
-        width: 900px;
-    }
-}
-*/
-
-@media only screen and (max-width: 600px) {
     #header {
         font-size: 5vw;
         height: 6vw;
