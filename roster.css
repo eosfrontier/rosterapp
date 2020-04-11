@@ -266,6 +266,26 @@ a#nologin {
     white-space: nowrap;
 }
 
+.roster-entry.editing:nth-child(even) > div:nth-child(n+3) {
+    width: 320px;
+    margin-left: 0px;
+}
+
+.roster-entry.editing:nth-child(odd) > div:nth-child(n+3) {
+    width: 310px;
+    margin-left: 38px;
+}
+
+.roster-entry.editing:nth-child(odd) > div:nth-child(n) .roster-field-radiobutton {
+    left: unset;
+    right: -20px;
+}
+
+.roster-entry.editing:nth-child(odd) > div:nth-child(n+3) input[type="text"] {
+    text-align: right;
+    padding-right: 4px;
+}
+
 .roster-entry .field-conflict {
     background-color: #403710;
     border: 1px solid #605720;
@@ -646,7 +666,6 @@ a#nologin {
     cursor: pointer;
     position: relative;
     background-color: #112233;
-    color: 
 }
 
 .roster-entry .field-mandatory {
