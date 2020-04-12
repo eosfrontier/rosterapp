@@ -1202,6 +1202,15 @@ body.admin .roster-entry.disabled {
     color: #40f3ff;
 }
 
+/* Access log coloring */
+.roster-entry > div > .access-denied {
+    color: #de1045;
+}
+
+.roster-entry > div > .access-granted {
+    color: #10de45;
+}
+
 @media only screen and (min-width: 914px) {
     #main-body {
         width:900px;

@@ -16,6 +16,7 @@ var gRosterID = 0
 var person_fields
 var primary_fields
 var multi_fields = {}
+var func_fields = {}
 var sort_field
 var special_fields = { character_image:'<div><img src="'+mugserver+'{{characterID}}.jpg"></div>' }
 var special_fieldsnew = { character_image:'<div><div class="image-add-new">+</div></div>' }
@@ -96,6 +97,7 @@ function fill_roster_fields(roster)
     person_fields = []
     primary_fields = {}
     multi_fields = {}
+    func_fields = {}
     sort_field = 'character_name'
     sort_reverse = false
     editable_fields = {}
@@ -123,20 +125,25 @@ function fill_roster_fields(roster)
             if (parseInt(metaval[0]) != 0) {
                 person_fields.push({ roster_order: parseInt(metaval[0]), fieldname: metaname})
             }
-            if (metaval[1].indexOf('P') >= 0) {
-                primary_fields[metaname] = true
-            }
-            var midx = metaval[1].indexOf('M')
-            if (midx >= 0) {
-                var mmax = parseInt(metaval[1].slice(midx+1))
-                if (!mmax) mmax = 0
-                multi_fields[metaname] = mmax
-            }
-            if (metaval[1].indexOf('S') >= 0) {
-                sort_field = metaname
-            }
-            if (metaval[1].indexOf('SD') >= 0) {
-                sort_reverse = true
+            var fieldtypes = metaval[1].split(',')
+            for (var ft = 0; ft < fieldtypes; ft++) {
+                switch(fieldtypes[ft][0]) {
+                    case 'P':
+                        primary_fields[metaname] = true
+                        break;
+                    case 'S':
+                        sort_field = metaname
+                        if (fieldtypes[ft][1] == 'D') sort_reverse = true
+                        break;
+                    case 'T':
+                        func_fields[metaname] = render_time
+                        break;
+                    case 'M':
+                        var mmax = parseInt(metaval[1].slice(midx+1))
+                        if (!mmax) mmax = 0
+                        multi_fields[metaname] = mmax
+                        break;
+                }
             }
             if (!external) {
                 editable_fields[metaname] = metaval[2]
@@ -315,6 +322,39 @@ function htmlize(text)
     return String(text).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
 }
 
+function format_timediff(now, time)
+{
+    var diff = Math.floor((now - time) / 1000)
+    var fields = []
+    var sizes = [
+        60,'s',
+        60,'m',
+        24,'h',
+        7,'d',
+        10000000,'w'
+    ]
+    for (int i = 0; i < sizes.length; i += 2) {
+        var val = diff % sizes[i]
+        if (val < 10) val = '0'+val
+        fields.unshift(val + sizes[i+1])
+        diff = Math.floor(diff / sizes[i])
+        if (diff <= 0) break;
+    }
+    return fields.slice(0,2).join(' ')
+}
+
+function render_time(text)
+{
+    var fields = text.split(':')
+    if (!fields[0].match(/^[0-9]+$/)) {
+        return htmlize(text)
+    }
+    // TODO: IC time conversion
+    var timetxt = format_timediff(new Date(), new Date(parseInt(fields[0]+'000')))
+    var cls = 'access-'+htmlize(fields[1].toLowerCase())
+    return '<span class="'+cls+'">'+timetxt+' ago : '+fields[1]+'</span>'
+}
+
 function roster_entry(entry, doedit, canedit)
 {
     if (!doedit) {
@@ -333,6 +373,10 @@ function roster_entry(entry, doedit, canedit)
         var text = entry[pf] || ''
         var ecls = ''
         var etitle = ''
+        var renderfunc = htmlize
+        if (func_fields[pf] != null) {
+            renderfunc = func_fields[pf]
+        }
         if (Array.isArray(text)) {
             if (multi_fields[pf] != null) {
                 if (pf == sort_field) {
@@ -340,16 +384,16 @@ function roster_entry(entry, doedit, canedit)
                     if (sort_reverse) { text.reverse() }
                 }
                 if (multi_fields[pf] > 0) { text = text.slice(0,multi_fields[pf]) }
-                text = text.map(htmlize).join('</div><div class="roster-person-'+pf+'">')
+                text = text.map(renderfunc).join('</div><div class="roster-person-'+pf+'">')
             } else if (canedit) {
-                text = '<div class="field-conflict-choice selected">'+text.map(htmlize).join('</div><div class="field-conflict-choice">')+'</div>'
+                text = '<div class="field-conflict-choice selected">'+text.map(renderfunc).join('</div><div class="field-conflict-choice">')+'</div>'
                 ecls += ' field-conflict'
                 etitle = 'Conflicting edits, please resolve!'
             } else {
-                text = htmlize(text[0])
+                text = renderfunc(text[0])
             }
         } else {
-            text = htmlize(text)
+            text = renderfunc(text)
         }
         var sf = special_fields[pf]
         if (sf) { text = sf.replace(/{{(.*?)}}/, function(v1, v2) { return entry[v2] }) }

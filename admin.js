@@ -476,7 +476,10 @@ function save_roster_entry(rids)
     }
     var ord = 1
     re.find('.roster-field[data-fieldname]').each(function() {
-        var fieldtype = $(this).hasClass('field-mandatory') ? 'P' : ''
+        var fieldtype = $.grep($(this).attr('data-fieldtype').split(','), function(d) { return d[0] != 'P' })
+        if ($(this).hasClass('field-mandatory')) {
+            fieldtype.unshift('P')
+        }
         var fieldname = $(this).attr('data-fieldname')
         var fieldlabel = fieldname
         if (field_types[fieldname] && field_types[fieldname].fieldlabel) {
