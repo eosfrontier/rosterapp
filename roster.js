@@ -333,7 +333,7 @@ function format_timediff(now, time)
         7,'d',
         10000000,'w'
     ]
-    for (int i = 0; i < sizes.length; i += 2) {
+    for (var i = 0; i < sizes.length; i += 2) {
         var val = diff % sizes[i]
         if (val < 10) val = '0'+val
         fields.unshift(val + sizes[i+1])
