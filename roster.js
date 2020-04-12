@@ -351,6 +351,7 @@ function render_time(text)
     }
     // TODO: IC time conversion
     var timetxt = format_timediff(new Date(), new Date(parseInt(fields[0]+'000')))
+    timetxt = timetxt.replace(/^0*/, '')
     var cls = 'access-'+htmlize(fields[1].toLowerCase())
     return '<span class="'+cls+'">'+timetxt+' ago : '+fields[1]+'</span>'
 }
