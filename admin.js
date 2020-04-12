@@ -167,7 +167,7 @@ function fill_roster_entry(fields)
             }
             rt.fields[entry.name] = {
                 order: parseInt(rtent[0]),
-                fieldtype: rtent[1] == 'P' ? 1 : 0
+                fieldtype: rtent[1]
             }
             field_types[entry.name] = {
                 fieldlabel: rtent.slice(2).join(':'),
@@ -273,10 +273,10 @@ function roster_entry(entry, newroster)
             text = '&lt;'+text+'&gt;'
         }
         var cls = 'roster-field-'+rf
-        if (ef.fieldtype > 0) { cls += ' field-mandatory' }
+        if (ef.fieldtype.indexOf('P') >= 0) { cls += ' field-mandatory' }
         if (ft.field_external_table) { cls += ' field-external' }
         else { cls += ' field-normal' }
-        html.push('<div data-fieldname="',rf,'" class="',cls,'"><div class="roster-field-radiobutton"></div>',text,'</div>')
+        html.push('<div data-fieldname="',rf,'" data-fieldtype="',ef.fieldtype,'" class="',cls,'"><div class="roster-field-radiobutton"></div>',text,'</div>')
     }
     html.push('<div class="roster-field roster-new-field"></div>')
     html.push('</div>')
@@ -600,7 +600,7 @@ function select_field_entry()
                     cls += ' field-mandatory'
                 }
             }
-            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'">'+
+            selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'" data-fieldtype="">'+
                 '<div class="roster-field-radiobutton"></div><span>'+htmlize(label)+'</span></div>')
         } else {
             selecting.find('span').text(label)
