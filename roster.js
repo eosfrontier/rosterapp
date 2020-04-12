@@ -139,7 +139,7 @@ function fill_roster_fields(roster)
                         func_fields[metaname] = render_time
                         break;
                     case 'M':
-                        var mmax = parseInt(metaval[1].slice(midx+1))
+                        var mmax = parseInt(fieldtypes[ft].slice(1))
                         if (!mmax) mmax = 0
                         multi_fields[metaname] = mmax
                         break;
