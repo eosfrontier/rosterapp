@@ -126,14 +126,14 @@ function fill_roster_fields(roster)
                 person_fields.push({ roster_order: parseInt(metaval[0]), fieldname: metaname})
             }
             var fieldtypes = metaval[1].split(',')
-            for (var ft = 0; ft < fieldtypes; ft++) {
+            for (var ft = 0; ft < fieldtypes.length; ft++) {
                 switch(fieldtypes[ft][0]) {
                     case 'P':
                         primary_fields[metaname] = true
                         break;
                     case 'S':
                         sort_field = metaname
-                        if (fieldtypes[ft][1] == 'D') sort_reverse = true
+                        if (fieldtypes[ft] == 'SD') sort_reverse = true
                         break;
                     case 'T':
                         func_fields[metaname] = render_time
