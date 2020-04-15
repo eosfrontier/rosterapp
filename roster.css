@@ -594,7 +594,7 @@ a#nologin {
     width: 140px;
     height: 30px;
     top: 2px;
-    left: calc(-9px * 1.732 - 30px);
+    left: calc(-10px * 1.732 - 30px);
     clip-path: polygon(100% calc(100% - 10px), calc(16px * 1.732) calc(100% - 10px), 0% calc(100% - 25px), 2px calc(100% - 26px), calc(16px * 1.732) calc(100% - 12px), 100% calc(100% - 12px));
     z-index: -1;
 }
@@ -783,17 +783,10 @@ a#nologin {
     left: auto;
 }
 
-/*
-.roster-entry .roster-field-roster_type,
-.roster-entry .roster-person-character_image {
-    z-index: 40;
-}
-*/
-
-.roster-entry:not(.editing):not(.disabled) .roster-buttons:hover,
+.roster-entry:not(.disabled) .roster-buttons:hover,
 body.admin .roster-entry:not(.disabled) .roster-buttons:hover,
 body.admin .roster-entry:not(.disabled):not(.new-roster) .roster-field-roster_type:hover ~ .roster-buttons,
-.roster-entry:not(.editing):not(.disabled) .roster-person-character_image:hover ~ .roster-buttons {
+.roster-entry:not(.disabled) .roster-person-character_image:hover ~ .roster-buttons {
     width: 40px;
 }
 
@@ -801,15 +794,6 @@ body.admin .roster-entry.editing .roster-buttons {
     width: 80px !important;
 }
 
-/*
-.roster-entry:not(.editing):not(.disabled):hover > .roster-buttons {
-    width: 52px;
-}
-
-body.admin .roster-entry:not(.disabled):hover > .roster-buttons {
-    width: 52px;
-}
-*/
 
 body.admin .roster-entry.disabled {
     opacity: 0.4;
@@ -845,6 +829,10 @@ body.admin .roster-entry.disabled {
     content: '\f040';
 }
 
+.roster-entry.editing .roster-button-edit::before {
+    content: '\f064';
+}
+
 .roster-button-undo::before {
     content: '\f0e2';
 }
@@ -860,6 +848,12 @@ body.admin .roster-entry.disabled {
 .roster-button-edit {
     background-color: #116862;
     box-shadow: 0 0 4px #11cfd4;
+}
+
+.roster-entry.editing .roster-button-edit {
+    background-color: #118852;
+    box-shadow: 0 0 4px #11dfa4;
+    color: #56cf20;
 }
 
 .roster-button-delete {

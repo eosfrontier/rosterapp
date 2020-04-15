@@ -579,9 +579,21 @@ function show_new_person(roster)
     }
 }
 
+function unedit_person(rp)
+{
+    var charid = rp.attr('data-character-id')
+    if (charid && gPeople[charid]) {
+        rp.replaceWith(roster_entry(gPeople[charid], false, true))
+    }
+}
+
 function edit_person()
 {
     var rp = $(this).closest('.roster-entry')
+    if (rp.hasClass('editing')) {
+        unedit_person(rp)
+        return
+    }
     var cfv = null
     if ($(this).hasClass('field-conflict-choice')) {
         cfv = this
