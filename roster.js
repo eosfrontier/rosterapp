@@ -318,7 +318,7 @@ function fill_one_char(person)
 
 function set_roster_type(rosid)
 {
-    if (gRosterid == rosid) return
+    if (gRosterID == rosid) return
     gRosterID = rosid
     // roster_type = $(this).attr('data-roster-type')
     // roster_label = $(this).attr('data-roster-label')
