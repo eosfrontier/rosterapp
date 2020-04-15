@@ -60,7 +60,7 @@ function load(idandtoken)
 
     $(document).click(hide_popups)
     $('.menu-button').click(show_menu)
-    $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
+    // $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
 }
 
@@ -126,7 +126,7 @@ function fill_roster_list(roster_list)
         }
         var roster_label = 'roster'
         if (rtent[2] != '') { roster_label = rtent[2] }
-        mhtml.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt.roster_type,'" data-roster-id="',rt.rosterID,'">',rt.roster_type,' '+roster_label+'</div>')
+        mhtml.push('<a class="header-menu-roster_type menu-item" href="../roster/#',rt.rosterID,'">',rt.roster_type,' ',roster_label,'</div>')
         html.push(roster_entry(rt))
         $.postjson(orthanc+'/character/meta/', { 'id': rid }, fill_roster_entry)
         gAdminList.push('roster:admin:'+rid)
@@ -207,12 +207,14 @@ function fill_fields()
     set_accountacl()
 }
 
+/*
 function set_roster_type()
 {
     roster_id = $(this).attr('data-roster-id')
     set_cookie('roster_id', roster_id)
     window.location = '../roster/'
 }
+*/
 
 function show_menu(e)
 {

@@ -46,7 +46,15 @@ function load(idandtoken)
     if (!clienttoken) { return }
     $('#nologin').remove()
     gAccountID = parseInt(idandtoken.id)
-    gRosterID = get_cookie('roster_id')
+    gRosterID = parseInt(window.location.hash.replace(/^#/,''))
+    if (gRosterID) {
+        set_cookie('roster_id', gRosterID)
+    } else {
+        gRosterID = get_cookie('roster_id')
+        if (gRosterID) {
+            window.location.hash = '#'+gRosterID
+        }
+    }
     loading["types"] = true
     $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     loading["chars"] = true
@@ -67,8 +75,16 @@ function load(idandtoken)
     $('#roster-list').on('click','.field-conflict-save', save_conflict)
 
     $('.menu-button').click(show_menu)
-    $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
-    $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
+    // $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
+    $(window).on('hashchange', function() {
+        if (window.location.hash != '#select') {
+            $('.add-popup').removeClass('visible')
+            var rosid = parseInt(window.location.hash.replace(/^#/,''))
+            if (rosid) {
+                set_roster_type(rosid)
+            }
+        }
+    })
 }
 
 function fill_roster_types(rosters)
@@ -79,9 +95,12 @@ function fill_roster_types(rosters)
         var rt = rtv[0]
         var rl = 'roster'
         if (rtv[2] != '') { rl = rtv[2] }
+        /*
         html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,
             '" data-roster-label="',rl,'" data-roster-id="',
             rosters[i].character_id,'">',rt,' ',rl,'</div>')
+        */
+        html.push('<a class="header-menu-roster_type menu-item" href="#',rosters[i].character_id,'">',rt,' ',rl,'</div>')
 
     }
     loading["types"] = false
@@ -297,15 +316,17 @@ function fill_one_char(person)
 }
 */
 
-function set_roster_type()
+function set_roster_type(rosid)
 {
-    roster_type = $(this).attr('data-roster-type')
-    roster_label = $(this).attr('data-roster-label')
-    gRosterID = $(this).attr('data-roster-id')
-    $('span.roster-type').text(roster_type)
-    $('span.roster-label').text(roster_label)
+    gRosterID = rosid
+    // roster_type = $(this).attr('data-roster-type')
+    // roster_label = $(this).attr('data-roster-label')
+    // gRosterID = $(this).attr('data-roster-id')
+    // $('span.roster-type').text(roster_type)
+    // $('span.roster-label').text(roster_label)
     set_cookie('roster_id', gRosterID)
-    $('#roster-list').html('<h3 class="loading">'+htmlize('Loading '+roster_type+' '+roster_label)+'</h3>')
+    // $('#roster-list').html('<h3 class="loading">'+htmlize('Loading '+roster_type+' '+roster_label)+'</h3>')
+    $('#roster-list').html('<h3 class="loading">Loading</h3>')
     loading["chars"] = true
     loading["roster"] = true
     $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)
