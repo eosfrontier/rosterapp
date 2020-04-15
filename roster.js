@@ -8,6 +8,7 @@ var gRosters
 var gPeople = {}
 var gCharacters
 var gAccountID = 0
+var gMyCharID = 0
 var gIsOwner = false
 var loading = {}
 var roster_type
@@ -26,13 +27,13 @@ var character_fields = []
 var search_value = ''
 var clienttoken
 
-$.postjson = function(url, data, callback) {
+$.postjson = function(url, data, callback, context) {
     data['token'] = clienttoken
     $.ajax({
         'type': 'POST',
         'url': url,
         'contentType': 'text/plain',
-        'context': data,
+        'context': context ? context : data,
         'data': JSON.stringify(data),
         'dataType': 'json',
         'success': callback,
@@ -59,6 +60,7 @@ function load(idandtoken)
     $('#roster-list').on('click','.roster-button-edit', edit_person)
     $('#roster-list').on('input','.editable > input', change_person_field)
     $('#roster-list').on('change','.editable.changed > input[type="text"]', save_person_field)
+    $('#roster-list').on('change','.editable > select', save_person_field)
     $('#roster-list').on('change','.editable > input[type="checkbox"]', save_person_checkbox)
     $('#roster-list').on('click','.roster-button-delete', delete_person)
     $('#roster-list').on('click',':not(.editing) .field-conflict-choice', edit_person)
@@ -130,19 +132,19 @@ function fill_roster_fields(roster)
                 switch(fieldtypes[ft][0]) {
                     case 'P':
                         primary_fields[metaname] = true
-                        break;
+                        break
                     case 'S':
                         sort_field = metaname
                         if (fieldtypes[ft] == 'SD') sort_reverse = true
-                        break;
+                        break
                     case 'T':
                         func_fields[metaname] = render_time
-                        break;
+                        break
                     case 'M':
                         var mmax = parseInt(fieldtypes[ft].slice(1))
                         if (!mmax) mmax = 0
                         multi_fields[metaname] = mmax
-                        break;
+                        break
                 }
             }
             if (!external) {
@@ -240,6 +242,7 @@ function fill_roster()
                     if (person[fn]) { ppl[fn] = person[fn] }
                 }
                 if (person.accountID == gAccountID) {
+                    gMyCharID = pid
                     var isadmin = ppl['roster:admin:'+gRosterID]
                     if (isadmin) {
                         canedit = true
@@ -338,7 +341,7 @@ function format_timediff(now, time)
         if (val < 10) val = '0'+val
         fields.unshift(val + sizes[i+1])
         diff = Math.floor(diff / sizes[i])
-        if (diff <= 0) break;
+        if (diff <= 0) break
     }
     return fields.slice(0,2).join(' ')
 }
@@ -427,12 +430,17 @@ function roster_entry(entry, doedit, canedit)
         if (gPeople[entry.characterID]) {
             iseditor = gPeople[entry.characterID]['roster:admin:'+gRosterID]
         }
-        if (iseditor == 'owner') {
-            html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-owner" title="Owns this roster">Owner</div>')
-        } else {
-            html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-editor editable" title="Can edit this roster">')
-            html.push('<input type="checkbox" value="editor" '+(iseditor ? ' checked' : '')+'>Editor</div>')
+        var lockown = ''
+        if ((iseditor == 'owner') && (entry.characterID != gMyCharID)) {
+            lockown = ' disabled'
         }
+        html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-owner editable" title="Can edit this roster">')
+        html.push('Editor:<select class="owner" value="',iseditor,'"><option value="" ',(iseditor == '' ? 'selected':''),' ',
+            (iseditor == 'owner' ? 'disabled' : ''),'>No</option>')
+        html.push('<option value="editor" ',(iseditor == 'editor' ? 'selected':''),' ',
+            (iseditor == 'owner' ? 'disabled' : ''),'>Editor</option>')
+        html.push('<option value="owner" ',(iseditor == 'owner' ? 'selected':''),'>Owner</option>')
+        html.push('</select></div>')
     }
     html.push('</div>')
     return html.join('')
@@ -587,7 +595,7 @@ function edit_person()
         
     if (!conflict) {
         rp.find('.field-conflict-resolved').removeClass('field-conflict-resolved')
-        rp.find('.editable').each(function() {
+        rp.find('.editable:not(:has(select,input))').each(function() {
             var ediv = $(this)
             var fieldname = ediv.attr('data-field-name')
             var ef = editable_fields[fieldname] || ''
@@ -601,11 +609,17 @@ function edit_person()
         if (gPeople[characterID]) {
             iseditor = gPeople[characterID]['roster:admin:'+gRosterID]
         }
-        if (iseditor == 'owner') {
-            rp.append($('<div data-field-name="roster:admin:'+gRosterID+'" class="roster-owner" title="Owns this roster">Owner</div>'))
-        } else {
-            rp.append($('<div data-field-name="roster:admin:'+gRosterID+'" class="roster-editor editable" title="Can edit this roster"><input type="checkbox" value="editor" '+(iseditor ? ' checked' : '')+'>Editor</div>'))
+        var html = []
+        var lockown = ''
+        if ((iseditor == 'owner') && (characterID != gMyCharID)) {
+            lockown = ' disabled'
         }
+        html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-owner editable" title="Can edit this roster">')
+        html.push('Editor:<select class="owner" value="',iseditor,'"><option value="" ',(iseditor == '' ? 'selected':''),lockown,'>No</option>')
+        html.push('<option value="editor" ',(iseditor == 'editor' ? 'selected':''),lockown,'>Editor</option>')
+        html.push('<option value="owner" ',(iseditor == 'owner' ? 'selected':''),'>Owner</option>')
+        html.push('</select></div>')
+        rp.append(html.join(''))
     }
     rp.addClass('editing')
 }
@@ -673,22 +687,47 @@ function save_person_checkbox()
 
 function save_person_field()
 {
-    if ($(this).is('[type="checkbox"]')) {
+    var input = $(this)
+    if (input.is('[type="checkbox"]')) {
         return save_person_checkbox()
     }
-    var newvalue = $(this).val()
-    var oldvalue = $(this).attr('value')
+    var newvalue = input.val()
+    var oldvalue = input.attr('value')
     if (oldvalue == null) { oldvalue = null }
     if (newvalue == null) { newvalue = null }
-    var field = $(this).closest('.editable')
+    var field = input.closest('.editable')
     if (oldvalue != newvalue || field.hasClass('initial')) {
+        field.removeClass('saved').addClass('changed')
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
-            $.postjson(orthanc+'/character/meta/update.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue, oldvalue: oldvalue }] }, saved_person_field)
+            var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue, oldvalue: oldvalue }] }
+            if (input.hasClass("owner") && oldvalue == 'owner') {
+                // Prevent removing last owner
+                $.postjson(orthanc+'/character/meta/', {
+                    meta:fieldname }, delete_roster_owner, updatedata)
+            } else {
+                $.postjson(orthanc+'/character/meta/update.php', updatedata, saved_person_field)
+            }
         }
     }
+}
+
+function delete_roster_owner(result)
+{
+    var count = 0
+    for (var i = 0; i < result.length; i++) {
+        if (result[i].value == 'owner') {
+            count++
+        }
+    }
+    if (count < 2) {
+        alert("You are the only owner, will not remove ownership")
+        $('#roster-list .roster-entry[data-character-id="'+this.id+'"] .editable[data-field-name="'+this.meta[0].name+'"]').removeClass('changed').addClass('error')
+        $('#roster-list .roster-entry[data-character-id="'+this.id+'"] .editable[data-field-name="'+this.meta[0].name+'"] select').val('owner').attr('value','owner')
+        return
+    }
+    $.postjson(orthanc+'/character/meta/update.php', this, saved_person_field)
 }
 
 function saved_person_field(result)
@@ -697,6 +736,7 @@ function saved_person_field(result)
         var entry = $("#roster-list .roster-entry[data-character-id='"+this.id+"']")
         for (var i = 0; i < this.meta.length; i++) {
             var field = entry.find(".editable[data-field-name='"+this.meta[i].name+"']")
+            field.removeClass('error')
             if (this.meta[i].value == null) {
                 entry.addClass('deleted')
                 field.text('')
@@ -710,7 +750,7 @@ function saved_person_field(result)
                         entry.removeClass('editing')
                     }
                 } else {
-                    var input = field.find("input")
+                    var input = field.find("input,select")
                     var fv = this.meta[i].value
                     input.attr('value', fv)
                     if (field.hasClass('initial')) {
