@@ -282,7 +282,7 @@ function roster_entry(entry, newroster)
     }
     html.push('<div class="roster-field-roster_type"><div class="field-box"><div class="field-text">')
     if (newroster) {
-        html.push('<input type="text" placeholder="',htmlize(entry.roster_type),'">')
+        html.push('<input type="text" placeholder="',htmlize(entry.roster_type),'" maxlength="12" pattern="[A-Za-z][A-Za-z][A-Za-z]+">')
     } else {
         html.push(htmlize(entry.roster_type))
     }
@@ -358,6 +358,10 @@ function start_new_roster()
         return
     }
     if ($('#roster-list .roster-entry.editing').length > 0) {
+        return
+    }
+    if ((typeval.length > 12) || (!typeval.match(/^[a-z][a-z][a-z]+$/))) {
+        rtfield.addClass('duplicate')
         return
     }
     $('.duplicate').removeClass('duplicate')
@@ -476,6 +480,10 @@ function save_roster_entry(rids)
 {
     if (!gMyCharID) return
     var re = $(this).closest('.roster-entry')
+    if (re.find('.roster-field.field-mandatory[data-fieldname]').length == 0) {
+        alert('Primary field required')
+        return
+    }
     var roster_type = inputval_or_text(re.find('.roster-field-roster_type .field-text'))
     var roster_desc = inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
     if (!roster_desc.match(/^[a-z]+:/)) { roster_desc = ':'+roster_desc }
@@ -590,6 +598,11 @@ function choose_skill_list()
         if ($(this).hasClass('selecting')) { cls = 'selected' }
         $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"]').addClass(cls)
     })
+    if (re.find('.roster-field.field-normal').length < 2) {
+        $('#add-field-popup .search-field.roster-field-empty').addClass('exists')
+    } else {
+        $('#add-field-popup .search-field.roster-field-empty').removeClass('exists')
+    }
     var fieldname = $(this).attr('data-fieldname')
     $('#add-field-popup .search-field input').attr('readonly',true)
     if (fieldname) {
@@ -609,9 +622,11 @@ function select_field_entry()
     if (entry.hasClass('roster-field-empty')) {
         if (!selecting.hasClass('roster-new-field')) {
             var re = selecting.closest('.roster-entry')
-            selecting.remove()
-            if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
-                re.find('.roster-field.field-normal').first().addClass('field-mandatory')
+            if (re.find('.roster-field.field-normal').length >= 2) {
+                selecting.remove()
+                if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
+                    re.find('.roster-field.field-normal').first().addClass('field-mandatory')
+                }
             }
         }
     } else {
