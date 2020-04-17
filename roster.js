@@ -711,7 +711,7 @@ function save_person_checkbox()
     if (characterID && fieldname) {
         if ($(this).is(':checked')) {
             $.postjson(orthanc+'/character/meta/update.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue, oldvalue: newvalue }] }, saved_person_field)
+                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
         } else {
             $.postjson(orthanc+'/character/meta/delete.php', {
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
@@ -735,7 +735,7 @@ function save_person_field()
         var fieldname = field.attr('data-field-name')
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
-            var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue, oldvalue: oldvalue }] }
+            var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue }] }
             if (input.hasClass("owner") && oldvalue == 'owner') {
                 // Prevent removing last owner
                 $.postjson(orthanc+'/character/meta/', {
