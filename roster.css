@@ -207,6 +207,7 @@ a#nologin {
 
 
 #roster-list {
+    width: 100%;
     display: grid;
     grid-template-columns: 420px 420px;
     grid-auto-rows: 189px;
@@ -463,6 +464,11 @@ a#nologin {
     padding-right: 5px;
     padding-top: 2px;
     min-height: 20px;
+    direction: rtl;
+}
+
+.roster-entry > div:last-child {
+    white-space: normal;
 }
 
 .roster-entry:nth-child(odd) > div:nth-child(n+4):not(:empty)::before {
@@ -1270,6 +1276,13 @@ body.admin .roster-entry.disabled {
     .roster-entry {
         width: 400px !important;
     }
+    
+    .roster-entry > div:last-child {
+        width: calc(50vw - 120px);
+    }
+    .roster-entry:nth-child(odd) > div:last-child {
+        margin-left: calc(470px - 50vw)
+    }
 }
 @media only screen and (max-width: 599px) {
     #main-body {
@@ -1295,22 +1308,19 @@ body.admin .roster-entry.disabled {
     .roster-entry:nth-child(odd) > .roster-person-character_image {
         transform: translate(-3px,0);
     }
-    /*
-    .roster-entry:nth-child(odd) > div:nth-child(3) {
-        width: calc(100vw - 216px);
+    .roster-entry > div:last-child {
+        width: calc(100vw - 150px);
+        height: auto !important;
     }
-    .roster-entry:nth-child(odd) > div:nth-child(n+4) {
-        width: calc(100vw - 208px);
+    .roster-entry:nth-child(odd) > div:last-child {
+        margin-left: calc(500px - 100vw)
     }
-    */
     #header {
         font-size: 5vw;
         height: 6vw;
     }
     #main-body {
         margin-top: 6vw;
-    }
-    .roster-entry {
     }
     .add-popup {
         width:90vw;
@@ -1366,6 +1376,13 @@ body.admin .roster-entry.disabled {
     }
     .roster-entry:nth-child(odd) {
         transform: translate(-90px) !important;
+    }
+        
+    .roster-entry > div:last-child {
+        width: calc(400px - 120px);
+    }
+    .roster-entry:nth-child(odd) > div:last-child {
+        margin-left: calc(470px - 400px)
     }
     .add-popup {
         width:360px;
