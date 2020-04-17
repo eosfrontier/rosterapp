@@ -89,6 +89,7 @@ function load(idandtoken)
     $('#roster-list').on('click','.field-conflict-save', save_conflict)
 
     $('.menu-button').click(show_menu)
+    $(window).resize(set_titlesize)
     // $('#headermenu-list').on('click', '.header-menu-roster_type', set_roster_type)
     $(window).on('hashchange', function() {
         if (window.location.hash != '#select') {
@@ -127,11 +128,6 @@ function fill_roster_types(rosters)
         var rt = rtv[0]
         var rl = 'roster'
         if (rtv[2] != '') { rl = rtv[2] }
-        /*
-        html.push('<div class="header-menu-roster_type menu-item" data-roster-type="',rt,
-            '" data-roster-label="',rl,'" data-roster-id="',
-            rosters[i].character_id,'">',rt,' ',rl,'</div>')
-        */
         html.push('<a class="header-menu-roster_type menu-item" href="#',rosters[i].character_id,'">',rt,' ',rl,'</div>')
 
     }
@@ -143,6 +139,24 @@ function fill_roster_types(rosters)
     } else {
         $('.menu-button').addClass('visible') 
     }
+}
+
+function set_titlesize()
+{
+    var titleelem = $('#header .header-text')
+    var pwid = titleelem.width()
+    var elemdiv = titleelem.find('div')
+    elemdiv.css('white-space','nowrap')
+    var scl = pwid / elemdiv.find('span').width()
+    if (scl < 1.0) {
+        if (scl < 0.5) scl = 0.5
+        elemdiv.css('transform','scaleX('+scl+')')
+        elemdiv.css('width',((pwid / scl)+1)+'px')
+    } else {
+        elemdiv.css('transform','')
+        elemdiv.css('width','')
+    }
+    elemdiv.css('white-space','')
 }
 
 function fill_roster_fields(roster)
@@ -203,11 +217,21 @@ function fill_roster_fields(roster)
             }
         } else {
             meta_fields.push('roster:admin:'+this.id)
+            var roster_title = metaval.slice(3).join(':')
             roster_type = metaval[0]
             roster_label = 'roster'
-            if (metaval[2] != '') { roster_label = metaval[2] }
+            if (metaval[2] != '') {
+                roster_label = metaval[2]
+            }
+            if (!roster_title) {
+                roster_title = roster_type+' '+roster_label
+            }
+            $('#header .header-text').html('<div><span>'+htmlize(roster_title)+'</span></div>')
+            set_titlesize()
+            /*
             $('span.roster-type').text(roster_type)
             $('span.roster-label').text(roster_label)
+            */
         }
     }
     person_fields.sort(function(a,b) { return a.roster_order - b.roster_order })
@@ -352,13 +376,7 @@ function set_roster_type(rosid)
 {
     if (gRosterID == rosid) return
     gRosterID = rosid
-    // roster_type = $(this).attr('data-roster-type')
-    // roster_label = $(this).attr('data-roster-label')
-    // gRosterID = $(this).attr('data-roster-id')
-    // $('span.roster-type').text(roster_type)
-    // $('span.roster-label').text(roster_label)
     set_cookie('roster_id', gRosterID)
-    // $('#roster-list').html('<h3 class="loading">'+htmlize('Loading '+roster_type+' '+roster_label)+'</h3>')
     $('#roster-list').html('<h3 class="loading">Loading</h3>')
     loading["chars"] = true
     loading["roster"] = true

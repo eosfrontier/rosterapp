@@ -29,10 +29,10 @@ a#nologin {
     display: block;
     position: fixed;
     z-index: 100;
-    width: 40vw;
-    height: 5vw;
+    width: max(390px, 40vw);
+    height: max(100px, 5vw);
     top: calc(50vh - 5vw);
-    left: 30vw;
+    left: min(30vw, calc(50vw - 195px));
     background-color: #520;
     border-radius: 20px;
     border: 2px solid #832;
@@ -53,8 +53,8 @@ a#nologin {
 }
 
 #header {    
-    display: flex;
-    flex-flow: row;
+    display: grid;
+    grid-template-columns: auto 1.5em;
     width: 900px;
     font-size: 250%;
     font-weight: bold;
@@ -69,11 +69,13 @@ a#nologin {
 
 #header .header-text {
     margin: auto 10px;
-    flex: auto;
+    width: max(300px,min(800px, calc(100vw - 100px)));
+}
+#header .header-text div {
+    transform-origin: left;
 }
 
 #header .header-button {
-    flex: initial;
     font-family: FontAwesome;
     font-size: 70%;
     font-weight: normal;
