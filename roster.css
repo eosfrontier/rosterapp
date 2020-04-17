@@ -101,6 +101,35 @@ a#nologin {
     overflow: hidden;
 }
 
+#admin_button {
+    position: absolute;
+    left: calc(50vw - 450px);
+    margin: 15px 10px;
+    color: #D1E8E2;
+    text-shadow: 0 0 1px #000, 0 0 5px #D14042, 0 0 10px #ffffff;
+    cursor: pointer;
+}
+
+#admin_button::before {
+    font-family: FontAwesome;
+    font-size: 200%;
+    font-weight: normal;
+    content: '\f013';
+}
+
+#admin_button.isadmin::after {
+    font-size: 200%;
+    font-weight: normal;
+    padding: 3px 10px;
+    margin-left: 10px;
+    content: 'Admin enabled, drop when no longer necessary';
+    border: 1px solid black;
+    box-shadow: 0 1px 4px #000;
+    border-radius: 20px;
+    background-color: #832;
+}
+
+
 .menu-button {
     cursor: pointer;
     position: relative;

@@ -1,7 +1,7 @@
 $.get('assets/id.php', load, 'json')
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
-//var orthanc = '/orthanc'
+if (!window.location.toString().match(/eosfrontier\.space/)) { orthanc = '/orthanc' }
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 
 var gRosters
@@ -10,6 +10,7 @@ var gCharacters
 var gAccountID = 0
 var gMyCharID = 0
 var gIsOwner = false
+var gIsAdmin = false
 var loading = {}
 var roster_type
 var roster_label = 'roster'
@@ -26,6 +27,9 @@ var meta_fields = []
 var character_fields = []
 var search_value = ''
 var clienttoken
+
+var adminusers = [818]
+var admingroups = [8,30]
 
 $.postjson = function(url, data, callback, context) {
     data['token'] = clienttoken
@@ -46,6 +50,16 @@ function load(idandtoken)
     if (!clienttoken) { return }
     $('#nologin').remove()
     gAccountID = parseInt(idandtoken.id)
+    if (adminusers.indexOf(gAccountID) >= 0) {
+        add_adminbutton()
+    } else {
+        for (var i = 0; i < admingroups.length; i++) {
+            if (idandtoken.groups[admingroups[i]]) {
+                add_adminbutton()
+                break
+            }
+        }
+    }
     gRosterID = parseInt(window.location.hash.replace(/^#/,''))
     if (gRosterID) {
         set_cookie('roster_id', gRosterID)
@@ -85,6 +99,24 @@ function load(idandtoken)
             }
         }
     })
+}
+
+function set_admin()
+{
+    if (gIsAdmin) {
+        gIsAdmin = false
+        $('#admin_button').removeClass('isadmin')
+    } else {
+        gIsAdmin = true
+        $('#admin_button').addClass('isadmin')
+    }
+    fill_roster()
+}
+
+function add_adminbutton()
+{
+    $('#footerframe').prepend('<div id="admin_button" title="Application Admin"></div>')
+    $('#admin_button').click(set_admin)
 }
 
 function fill_roster_types(rosters)
@@ -243,8 +275,8 @@ function fill_roster()
     for (var l in loading) {
         if (loading[l]) return
     }
-    var canedit = false
-    gIsOwner = false
+    var canedit = gIsAdmin
+    gIsOwner = gIsAdmin
     if (gCharacters) {
         for (var pid in gPeople) {
             for (var f = 0; f < character_fields.length; f++) {

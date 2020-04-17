@@ -1,7 +1,7 @@
 $.get('assets/id.php', load, 'json')
 
 var orthanc = 'https://api.eosfrontier.space/orthanc'
-//var orthanc = '/orthanc'
+if (!window.location.toString().match(/eosfrontier\.space/)) { orthanc = '/orthanc' }
 
 var default_field_types = {
    "roster:character:faction": { fieldlabel: "Faction", field_external_table: true },
@@ -11,10 +11,14 @@ var default_field_types = {
 var gMyCharID = 0
 var gAdminList = []
 var gAccountACL = []
+var gIsAdmin = false
 var special_fields = { roster_type:'<div class="image-field">?</div>' }
 var field_types
 var roster_field_types = {}
 var clienttoken
+
+var adminusers = [818]
+var admingroups = [8,30]
 
 $.postjson = function(url, data, callback, context) {
     data['token'] = clienttoken
@@ -35,7 +39,18 @@ function load(idandtoken)
     clienttoken = idandtoken.token
     if (!clienttoken) { return }
     $('#nologin').remove()
-    get_accountid(idandtoken.id)
+    var accountid = parseInt(idandtoken.id)
+    if (adminusers.indexOf(accountid) >= 0) {
+        add_adminbutton()
+    } else {
+        for (var i = 0; i < admingroups.length; i++) {
+            if (idandtoken.groups[admingroups[i]]) {
+                add_adminbutton()
+                break
+            }
+        }
+    }
+    get_accountid(accountid)
     $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
@@ -64,9 +79,31 @@ function load(idandtoken)
     $(window).on('hashchange', function() { if (window.location.hash != '#select') { $('.add-popup').removeClass('visible') } })
 }
 
+function set_admin()
+{
+    if (gIsAdmin) {
+        gIsAdmin = false
+        $('#admin_button').removeClass('isadmin')
+        $('#roster-list > .roster-entry > .roster-buttons').removeClass('roster-buttons').addClass('roster-buttons-disabled').html('')
+        set_accountacl()
+    } else {
+        gIsAdmin = true
+        $('#admin_button').addClass('isadmin')
+        $('#roster-list > .roster-entry > .roster-buttons-disabled').addClass('roster-buttons').removeClass('roster-buttons-disabled').html(
+            '<div class="roster-button-edit button" title="Edit roster"></div>'+
+            '<div class="roster-button-delete button" title="Delete roster"></div>'+
+            '<div class="roster-button-save button disabled" title="Update / Store"></div>')
+    }
+}
+
+function add_adminbutton()
+{
+    $('#footerframe').prepend('<div id="admin_button" title="Application Admin"></div>')
+    $('#admin_button').click(set_admin)
+}
+
 function get_accountid(accountid)
 {
-    var accountid = parseInt(accountid)
     if (accountid) {
         $.postjson(orthanc+'/character/', { 'accountID': accountid }, get_my_charid)
     }
@@ -96,7 +133,7 @@ function set_accountacl(acl)
             var acln = acle.name.split(':')
             if (acln[0] == 'roster' && acln[1] == 'admin') {
                 var aclid = parseInt(acln[2])
-                $('#roster-list > .roster-entry[data-roster-id="'+aclid+'"] > .roster-buttons-disabled').addClass('roster-buttons').html(
+                $('#roster-list > .roster-entry[data-roster-id="'+aclid+'"] > .roster-buttons-disabled').addClass('roster-buttons').removeClass('roster-buttons-disabled').html(
                     '<div class="roster-button-edit button" title="Edit roster"></div>'+
                     '<div class="roster-button-delete button" title="Delete roster"></div>'+
                     '<div class="roster-button-save button disabled" title="Update / Store"></div>')
