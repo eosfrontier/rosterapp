@@ -147,7 +147,7 @@ function set_titlesize()
     var pwid = titleelem.width()
     var elemdiv = titleelem.find('div')
     elemdiv.css('white-space','nowrap')
-    var scl = pwid / elemdiv.find('span').width()
+    var scl = pwid / (elemdiv.find('span').width() + 5)
     if (scl < 1.0) {
         if (scl < 0.5) scl = 0.5
         elemdiv.css('transform','scaleX('+scl+')')
