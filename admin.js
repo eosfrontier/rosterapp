@@ -548,11 +548,16 @@ function save_roster_entry(rids)
         $.postjson(orthanc+'/character/meta/delete.php', {
             id: rosterID, meta: fields_todelete }, cleaned_roster)
     }
-    $.postjson(orthanc+'/character/meta/update.php', {
-        id: gMyCharID, meta: [{'name':'roster:admin:'+rosterID, 'value':'owner'}]}, function() {
-            $.postjson(orthanc+'/character/meta/update.php', {
-                id: rosterID, meta: savefields }, saved_roster)
-            })
+    if (gIsAdmin) {
+        $.postjson(orthanc+'/character/meta/update.php', {
+            id: rosterID, meta: savefields }, saved_roster)
+    } else {
+        $.postjson(orthanc+'/character/meta/update.php', {
+            id: gMyCharID, meta: [{'name':'roster:admin:'+rosterID, 'value':'owner'}]}, function() {
+                $.postjson(orthanc+'/character/meta/update.php', {
+                    id: rosterID, meta: savefields }, saved_roster)
+                })
+    }
     var savebutton = re.find('.roster-button-save')
     savebutton.addClass('disabled')
 }
