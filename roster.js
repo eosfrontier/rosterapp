@@ -801,16 +801,18 @@ function save_person_field()
 function delete_roster_owner(result)
 {
     var count = 0
-    for (var i = 0; i < result.length; i++) {
-        if (result[i].value == 'owner') {
-            count++
+    if (!gIsAdmin) {
+        for (var i = 0; i < result.length; i++) {
+            if (result[i].value == 'owner') {
+                count++
+            }
         }
-    }
-    if (count < 2) {
-        alert("You are the only owner, will not remove ownership")
-        $('#roster-list .roster-entry[data-character-id="'+this.id+'"] .editable[data-field-name="'+this.meta[0].name+'"]').removeClass('changed').addClass('error')
-        $('#roster-list .roster-entry[data-character-id="'+this.id+'"] .editable[data-field-name="'+this.meta[0].name+'"] select').val('owner').attr('value','owner')
-        return
+        if (count < 2) {
+            alert("You are the only owner, will not remove ownership")
+            $('#roster-list .roster-entry[data-character-id="'+this.id+'"] .editable[data-field-name="'+this.meta[0].name+'"]').removeClass('changed').addClass('error')
+            $('#roster-list .roster-entry[data-character-id="'+this.id+'"] .editable[data-field-name="'+this.meta[0].name+'"] select').val('owner').attr('value','owner')
+            return
+        }
     }
     $.postjson(orthanc+'/character/meta/update.php', this, saved_person_field)
 }
