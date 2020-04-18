@@ -246,6 +246,42 @@ a#nologin {
     padding-bottom: 100px;
 }
 
+#roster-list > .roster-separator {
+    font-family: AquilaEthnocentric;
+    font-size: 150%;
+    padding-top: 90px;
+    color: #cde;
+    text-shadow: 0 0 2px #000, 0 0 3px #0cf, 0 0 5px #0ff, 0 0 10px #a4a, 0 0 15px #cef;
+}
+
+#roster-list > .roster-separator:nth-child(odd) {
+    text-align: right;
+    transform: translate(25px,0px);
+}
+
+#roster-list > .roster-separator:nth-child(even) {
+    text-align: left;
+    transform: translate(25px,90px);
+}
+
+#roster-list > .roster-separator::before {
+    content: "";
+    background: linear-gradient(-50deg, rgba(0,0,0,0) 0%, #0ad 50%, rgba(0,0,0,0) 100%);
+    position: absolute;
+    width: 200%;
+    height: 1px;
+    top: 90px;
+    z-index: -1;
+}
+
+#roster-list > .roster-separator:nth-child(odd)::before {
+    left: 0px;
+}
+
+#roster-list > .roster-separator:nth-child(even)::before {
+    right: 0px;
+}
+
 .roster-entry .roster-person-faction {
     text-transform: capitalize;
 }
