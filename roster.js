@@ -503,14 +503,15 @@ function roster_entry(entry, doedit, canedit)
             iseditor = gPeople[entry.characterID]['roster:admin:'+gRosterID]
         }
         var lockown = ''
-        if ((iseditor == 'owner') && (entry.characterID != gMyCharID)) {
+        if ((iseditor == 'owner') && (entry.characterID != gMyCharID) && (!gIsAdmin)) {
             lockown = ' disabled'
         }
         html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-owner editable" title="Can edit this roster">')
-        html.push('Editor:<select class="owner" value="',iseditor,'"><option value="" ',(iseditor == '' ? 'selected':''),' ',
-            (iseditor == 'owner' ? 'disabled' : ''),'>No</option>')
+        html.push('Editor:<select class="owner" value="',iseditor,
+            '"><option value="" ',(iseditor == '' ? 'selected':''),' ',
+            lockown,'>No</option>')
         html.push('<option value="editor" ',(iseditor == 'editor' ? 'selected':''),' ',
-            (iseditor == 'owner' ? 'disabled' : ''),'>Editor</option>')
+            lockown,'>Editor</option>')
         html.push('<option value="owner" ',(iseditor == 'owner' ? 'selected':''),'>Owner</option>')
         html.push('</select></div>')
     }
@@ -695,7 +696,7 @@ function edit_person()
         }
         var html = []
         var lockown = ''
-        if ((iseditor == 'owner') && (characterID != gMyCharID)) {
+        if ((iseditor == 'owner') && (characterID != gMyCharID) && (!gIsAdmin)) {
             lockown = ' disabled'
         }
         html.push('<div data-field-name="roster:admin:',gRosterID,'" class="roster-owner editable" title="Can edit this roster">')
