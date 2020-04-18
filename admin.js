@@ -314,7 +314,7 @@ function roster_entry(entry, newroster)
         var cls = 'roster-field-'+rf
         if (ef.fieldtype.indexOf('P') >= 0) { cls += ' field-mandatory' }
         if (ft.field_external_table) { cls += ' field-external' }
-        else { cls += ' field-normal' }
+        else if ($('#roster-list .roster-entry:not(.editing) div[data-fieldname="'+rf+'"]').length == 0) { cls += ' field-normal' }
         html.push('<div data-fieldname="',rf,'" data-fieldtype="',ef.fieldtype,'" class="',cls,'"><div class="roster-field-radiobutton"></div>',text,'</div>')
     }
     html.push('<div class="roster-field roster-new-field"></div>')
@@ -653,9 +653,11 @@ function select_field_entry()
             if (entry.hasClass('search-field-external')) {
                 cls += ' field-external'
             } else {
-                cls += ' field-normal'
-                if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
-                    cls += ' field-mandatory'
+                if ($('#roster-list .roster-entry:not(.editing) div[data-fieldname="'+fn+'"]').length == 0) {
+                    cls += ' field-normal'
+                    if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
+                        cls += ' field-mandatory'
+                    }
                 }
             }
             selecting.before('<div class="roster-field-'+fn+cls+' roster-field" data-fieldname="'+fn+'" data-fieldtype="">'+
@@ -666,9 +668,12 @@ function select_field_entry()
             if (entry.hasClass('search-field-external')) {
                 selecting.addClass('field-external').removeClass('field-normal')
             } else {
-                selecting.removeClass('field-external').addClass('field-normal')
-                if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
-                    selecting.addClass('field-mandatory')
+                selecting.removeClass('field-external')
+                if ($('#roster-list .roster-entry:not(.editing) div[data-fieldname="'+fn+'"]').length == 0) {
+                    selecting.addClass('field-normal')
+                    if (re.find('.roster-field.field-normal.field-mandatory').length == 0) {
+                        selecting.addClass('field-mandatory')
+                    }
                 }
             }
         }
@@ -688,9 +693,12 @@ function add_new_search_field()
     var fieldlabel = input.val()
     if (!fieldlabel) { return }
     var fieldname = labeltoname(fieldlabel)
-    var newentry = $('<div class="search-field search-field-new" data-fieldname="'+fieldname+'">'+
-        '<input type="text" placeholder="Description" value="'+fieldlabel+'">'+
-        '<div class="search-field-edit">&#61504;</div>').insertBefore(tdiv)
+    var newentry = $('#add-field-popup .search-field[data-fieldname="'+fieldname+'"]')
+    if (newentry.length == 0) {
+        newentry = $('<div class="search-field search-field-new" data-fieldname="'+fieldname+'">'+
+            '<input type="text" placeholder="Description" value="'+fieldlabel+'">'+
+            '<div class="search-field-edit">&#61504;</div>').insertBefore(tdiv)
+    }
     newentry.click()
     input.val('')
 }
