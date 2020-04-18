@@ -515,7 +515,7 @@ a#nologin {
         radial-gradient(circle at calc(100% - 15px * 1.732) calc(100% - 16px), #aef 2px, rgba(0,0,0,0) 5px),
         linear-gradient(-50deg, #0ad 65px, rgba(0,0,0,0) 100px);
     position: absolute;
-    width: 100px;
+    width: 150px;
     height: 20px;
     top: 20px;
     right: -27px;
@@ -611,7 +611,7 @@ a#nologin {
         radial-gradient(circle at calc(15px * 1.732) calc(100% - 16px), #aef 2px, rgba(0,0,0,0) 5px),
         linear-gradient(50deg, #0ad 65px, rgba(0,0,0,0) 100px);
     position: absolute;
-    width: 100px;
+    width: 150px;
     height: 20px;
     top: 20px;
     left: calc(-20px * 1.732);
