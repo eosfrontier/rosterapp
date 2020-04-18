@@ -1360,12 +1360,12 @@ body.admin .roster-entry.disabled {
     }
 }
 
-@media only screen and (max-width: 499px) {
+@media only screen and (max-width: 549px) {
     .roster-entry:nth-child(odd) > div:nth-child(3) {
         transform: translate(100px,0);
         text-align: right;
-        padding-left: calc(500px - 100vw); /*min(calc(500px - 100vw),0px);*/
-        width: calc(100vw - 250px);
+        padding-left: calc(470px - 100vw); /*min(calc(500px - 100vw),0px);*/
+        width: calc(100vw - 220px);
     }
     .roster-entry:nth-child(even) > div:nth-child(3) {
         transform: translate(-100px,0);
