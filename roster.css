@@ -249,7 +249,7 @@ a#nologin {
 #roster-list > .roster-separator {
     font-family: AquilaEthnocentric;
     font-size: 150%;
-    padding-top: 90px;
+    padding-top: 80px;
     color: #cde;
     text-shadow: 0 0 2px #000, 0 0 3px #0cf, 0 0 5px #0ff, 0 0 10px #a4a, 0 0 15px #cef;
 }
