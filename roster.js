@@ -35,7 +35,7 @@ $.postjson = function(url, data, callback, context) {
     data['token'] = clienttoken
     $.ajax({
         'type': 'POST',
-        'url': url,
+        'url': orthanc+url,
         'contentType': 'text/plain',
         'context': context ? context : data,
         'data': JSON.stringify(data),
@@ -70,9 +70,9 @@ function load(idandtoken)
         }
     }
     loading["types"] = true
-    $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_types)
+    $.postjson('/character/meta/', {'meta':'roster:type'}, fill_roster_types)
     loading["chars"] = true
-    $.postjson(orthanc+'/character/', { "all_characters":"all_characters" }, fill_roster_chars)
+    $.postjson('/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('#search-person-list').on('click','.search-person', add_new_person)
     $(document).click(hide_popups)
@@ -135,7 +135,7 @@ function fill_roster_types(rosters)
     $('#headermenu-list').html(html.join(''))
     if (gRosterID != 0) {
         loading["roster"] = true
-        $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)
+        $.postjson('/character/meta/', {'id':gRosterID}, fill_roster_fields)
     } else {
         $('.menu-button').addClass('visible') 
     }
@@ -242,7 +242,7 @@ function fill_roster_fields(roster)
     person_fields.unshift('character_image')
     loading["roster"] = false
     loading["meta"] = true
-    $.postjson(orthanc+'/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
+    $.postjson('/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
 }
 
 function fill_roster_chars(people)
@@ -359,19 +359,6 @@ function fill_roster()
     $('#roster-list').html(html.join(''))
 }
 
-/*
-function fill_one_char(person)
-{
-    var pid = person.characterID
-    var ppl = gPeople[pid]
-    for (var f = 0; f < person_fields.length; f++) {
-        var fn = person_fields[f]
-        if (person[fn]) { ppl[fn] = person[fn] }
-    }
-    $('#roster-list > .roster-entry[data-character-id="'+pid+'"]').replaceWith(roster_entry(ppl))
-}
-*/
-
 function set_roster_type(rosid)
 {
     if (gRosterID == rosid) return
@@ -380,8 +367,8 @@ function set_roster_type(rosid)
     $('#roster-list').html('<h3 class="loading">Loading</h3>')
     loading["chars"] = true
     loading["roster"] = true
-    $.postjson(orthanc+'/character/meta/', {'id':gRosterID}, fill_roster_fields)
-    $.postjson(orthanc+'/character/', { "all_characters":"all_characters" }, fill_roster_chars)
+    $.postjson('/character/meta/', {'id':gRosterID}, fill_roster_fields)
+    $.postjson('/character/', { "all_characters":"all_characters" }, fill_roster_chars)
     setTimeout(hide_popups, 0)
 }
 
@@ -630,12 +617,31 @@ function show_new_person(roster)
     }
 }
 
+function replace_one_char(fields)
+{
+    var pid = this.id
+    var ppl = gPeople[pid]
+    if (!ppl) { return }
+    for (var f = 0; f < meta_fields.length; f++) {
+        delete ppl[meta_fields[f]]
+    }
+    for (var p = 0; p < fields.length; p++) {
+        if (ppl[fields[p].name]) {
+            if (!Array.isArray(ppl[fields[p].name])) {
+                ppl[fields[p].name] = [gPeople[pid][fields[p].name]]
+            }
+            ppl[fields[p].name].push(fields[p].value)
+        } else {
+            ppl[fields[p].name] = fields[p].value
+        }
+    }
+    $('#roster-list > .roster-entry[data-character-id="'+pid+'"]').replaceWith(roster_entry(ppl, false, true))
+}
+
 function unedit_person(rp)
 {
     var charid = rp.attr('data-character-id')
-    if (charid && gPeople[charid]) {
-        rp.replaceWith(roster_entry(gPeople[charid], false, true))
-    }
+    $.postjson('/character/meta/', { 'id':charid, 'meta':meta_fields.join(',') }, replace_one_char)
 }
 
 function edit_person()
@@ -761,10 +767,10 @@ function save_person_checkbox()
     var characterID = field.closest('.roster-entry').attr('data-character-id')
     if (characterID && fieldname) {
         if ($(this).is(':checked')) {
-            $.postjson(orthanc+'/character/meta/update.php', {
+            $.postjson('/character/meta/update.php', {
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
         } else {
-            $.postjson(orthanc+'/character/meta/delete.php', {
+            $.postjson('/character/meta/delete.php', {
                 id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
         }
     }
@@ -789,10 +795,10 @@ function save_person_field()
             var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue }] }
             if (input.hasClass("owner") && oldvalue == 'owner') {
                 // Prevent removing last owner
-                $.postjson(orthanc+'/character/meta/', {
+                $.postjson('/character/meta/', {
                     meta:fieldname }, delete_roster_owner, updatedata)
             } else {
-                $.postjson(orthanc+'/character/meta/update.php', updatedata, saved_person_field)
+                $.postjson('/character/meta/update.php', updatedata, saved_person_field)
             }
         }
     }
@@ -814,7 +820,7 @@ function delete_roster_owner(result)
             return
         }
     }
-    $.postjson(orthanc+'/character/meta/update.php', this, saved_person_field)
+    $.postjson('/character/meta/update.php', this, saved_person_field)
 }
 
 function saved_person_field(result)
@@ -875,7 +881,7 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.postjson(orthanc+'/character/meta/delete.php', {
+                        $.postjson('/character/meta/delete.php', {
                             id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
                     }
                 })
@@ -891,7 +897,7 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        $.postjson(orthanc+'/character/meta/delete.php', {
+        $.postjson('/character/meta/delete.php', {
             id: characterID, meta: [{ name: fieldname, value: oldvalue }] }, saved_person_field)
     })
 }
