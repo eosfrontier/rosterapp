@@ -4,7 +4,6 @@ var orthanc = 'https://api.eosfrontier.space/orthanc'
 if (!window.location.toString().match(/eosfrontier\.space/)) { orthanc = '/orthanc' }
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 
-var gRosters
 var gPeople = {}
 var gCharacters
 var gAccountID = 0
@@ -128,7 +127,7 @@ function fill_roster_types(rosters)
         var rt = rtv[0]
         var rl = 'roster'
         if (rtv[2] != '') { rl = rtv[2] }
-        html.push('<a class="header-menu-roster_type menu-item" href="#',rosters[i].character_id,'">',rt,' ',rl,'</div>')
+        html.push('<a class="header-menu-roster_type menu-item" href="#',rosters[i].character_id,'">',rt,' ',rl,'</a>')
 
     }
     loading["types"] = false
@@ -248,7 +247,7 @@ function fill_roster_fields(roster)
 function fill_roster_chars(people)
 {
     people = people.filter(function(p) { return p.character_name })
-    people.sort(function(a,b) { return (a.character_name.localeCompare(b.character_name) })
+    people.sort(function(a,b) { return a.character_name.localeCompare(b.character_name) })
     gCharacters = people
     loading["chars"] = false
     fill_roster()
