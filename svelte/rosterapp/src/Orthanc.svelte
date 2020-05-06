@@ -13,7 +13,7 @@
   {
     const response = await fetch('http://test.medicorum.space/orthanc/character/meta/',
       { method: 'POST',
-        body: JSON.stringify({meta: meta})
+        body: JSON.stringify(meta)
       })
     return await response.json()
   }

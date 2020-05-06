@@ -1,17 +1,34 @@
 <script>
   export let rosters = []
+  export let rosterNames = {}
   export let visible
 
   import { fetchMeta } from './Orthanc.svelte'
-  fetchMeta('roster:type').then((data) => rosters = data)
+  fetchMeta({meta:'roster:type'}).then((data) => {
+    let newRosterNames = {}
+    rosters = data.map((el) => {
+      let rv = el.value.split(':')
+      let rn = rv[0]+' '+(rv[2] || 'roster')
+      newRosterNames[el.character_id] = rv[3] || rn
+      return {id:el.character_id, name:rn}
+    })
+    rosterNames = newRosterNames
+  })
+  function setVisible(e) {
+    if (e.target == this) {
+      visible = !visible
+    } else {
+      visible = false
+    }
+  }
 </script>
 
-<div id="headermenu" class="header-button menu-button" class:visible on:click|stopPropagation={() => visible = !visible}>&#61641;
+<div id="headermenu" class="header-button menu-button" class:visible on:click|stopPropagation={setVisible}>&#61641;
   <div class="header-menu menu-content">
     <div id="headermenu-list">
       {#each rosters as roster}
-        <a class="header-menu-roster_type menu-item" href="#{roster.character_id}">
-          {roster.value.split(':')[0]} {roster.value.split(':')[2] || 'roster'}
+        <a class="header-menu-roster_type menu-item" href="#{roster.id}">
+          {roster.name}
         </a>
       {/each}
     </div>
