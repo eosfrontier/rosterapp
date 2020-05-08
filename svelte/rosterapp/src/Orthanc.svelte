@@ -1,21 +1,33 @@
 <script context="module">
 
+  const orthanc = 'http://test.medicorum.space/orthanc/'
+  const token = 'xxx-xxx-xxx'
+  async function postJson(url, data)
+  {
+    data.token = token
+    const response = await fetch(orthanc+url, {
+      method:'POST',
+      body: JSON.stringify(data) })
+    return await response.json()
+  }
   export async function fetchCharacters()
   {
-    const response = await fetch('http://test.medicorum.space/orthanc/character/',
-      { method: 'POST',
-        body: JSON.stringify({all_characters:true})
-      })
-    return await response.json()
+    return postJson('character/', {all_characters:true})
   }
 
   export async function fetchMeta(meta)
   {
-    const response = await fetch('http://test.medicorum.space/orthanc/character/meta/',
-      { method: 'POST',
-        body: JSON.stringify(meta)
-      })
-    return await response.json()
+    return postJson('character/meta/', meta)
+  }
+
+  export async function updateMeta(id, meta)
+  {
+    return postJson('character/meta/update.php', {id: id, meta: [meta]})
+  }
+
+  export async function deleteMeta(id, meta)
+  {
+    return postJson('character/meta/delete.php', {id: id, meta: [{name: meta}]})
   }
 
 </script>

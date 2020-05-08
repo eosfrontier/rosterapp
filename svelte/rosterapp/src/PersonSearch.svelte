@@ -1,27 +1,34 @@
 <script>
   export let characters
   export let visible = false
+
+  import { createEventDispatcher } from 'svelte'
+  const dispatch = createEventDispatcher()
+
+  let searchkey = ''
+
   function checkSelectVisible() {
     visible = !!window.location.hash.match(/:search/)
   }
   checkSelectVisible()
-  $: if (visible) {
-    if (!window.location.hash.match(/:search/)) {
+  $: if (window.location.hash.match(/:search/)) {
+    if (!visible) window.history.back()
+  } else if (visible) {
       searchkey = ''
       window.location.hash += ':search'
-    }
-  } else if (window.location.hash.match(/:search/)) {
-    window.history.back()
   }
-  let searchkey = ''
 
   $: showchars = characters.filter(c => c.accountID > 0 && c.sheet_status == 'active' && c.character_name && c.character_name.toLowerCase().indexOf(searchkey.toLowerCase()) >= 0)
 
   const mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 
   function selectPerson(id) {
+    dispatch('select', { id: id })
+    visible = false
   }
+
 </script>
+
 <svelte:window on:hashchange={checkSelectVisible} on:click={() => { if(visible) { visible = false }}}/>
 
 {#if visible}

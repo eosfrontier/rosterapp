@@ -6,21 +6,24 @@
   let characterMeta = {}
   let primary = ''
   let searchVisible = false
+  let characterEditing = {}
 
   import Entry from './Entry.svelte'
   import PersonSearch from './PersonSearch.svelte'
-  import { fetchCharacters, fetchMeta } from './Orthanc.svelte'
+  import { fetchCharacters, fetchMeta, updateMeta, deleteMeta } from './Orthanc.svelte'
 
   $: rosterId && fetchMeta({id:rosterId}).then(loadFields)
 
+  let metafields = []
+
   function loadFields(data) {
-    let metafields = ['roster:admin:'+rosterId]
+    metafields = ['roster:admin:'+rosterId]
     fields = data.map(meta => {
       if (meta.name != 'roster:type') {
         let [order, flags, title] = meta.value.split(':')
         let name = meta.name
-        let external = false
         let metaset = name.split(':')
+        let editable = false
         if (metaset.length > 2) {
           external = true
           if (metaset[1] == 'character') {
@@ -30,14 +33,19 @@
             metafields.push(name)
           }
         } else {
+          editable = true
           metafields.push(name)
         }
         if (flags.indexOf('P') >= 0) {
           primary = name
         }
-        return {name:name, order:order, flags:flags,title:title,external:external}
+        return { name:name, order:order, flags:flags,title:title, editable:editable}
       }
     }).filter(e=>e).sort((a,b) => a.order-b.order)
+    getMeta()
+  }
+
+  function getMeta() {
     if (metafields.length > 0) {
       fetchMeta({meta:metafields.join(',')}).then(loadMeta)
     }
@@ -63,16 +71,25 @@
   }
 
   function isMember(character) {
-    return characterMeta[character.characterID] && characterMeta[character.characterID][primary]
+    return characterMeta[character.characterID] && (characterMeta[character.characterID][primary] != null)
   }
 
+  function addPerson(event) {
+    updateMeta(event.detail.id, { name: primary, value: '' }).then(getMeta)
+    characterEditing[event.detail.id] = true
+  }
+
+  function deleteEntry(event) {
+    deleteMeta(event.detail.id, primary).then(getMeta)
+    delete characterEditing[event.detail.id]
+  }
 
 </script>
 
 <div id="main-body">
   <div id="roster-list">
     {#each characters.filter(isMember) as values}
-      <Entry fields={fields} values={values} meta={characterMeta[values.characterID]} editable={editor}/>
+      <Entry fields={fields} values={values} meta={characterMeta[values.characterID]} editable={editor} bind:editing={characterEditing[values.characterID]} on:delete={deleteEntry}/>
     {/each}
     {#if editor}
       <div class="roster-entry add-new" on:click|stopPropagation={() => searchVisible=true}>
@@ -85,4 +102,4 @@
     {/if}
   </div>
 </div>
-<PersonSearch characters={characters.filter(c => !isMember(c))} bind:visible={searchVisible}/>
+<PersonSearch characters={characters.filter(c => !isMember(c))} bind:visible={searchVisible} on:select={addPerson}/>
