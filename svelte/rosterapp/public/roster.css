@@ -1119,6 +1119,8 @@ body.admin .roster-entry.disabled {
     font-family: sans-serif;
     font-size: 1em;
     color: inherit;
+    padding: 1px;
+    margin: 0;
 }
 
 .popup-person-list,

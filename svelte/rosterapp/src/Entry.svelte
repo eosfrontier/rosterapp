@@ -13,7 +13,7 @@
 <div class="roster-entry {faction}" class:editing>
   <div class="roster-person-character_image">
     <div>
-      <img src="{mugserver}{values['characterID']}.jpg">
+      <img alt="mug" src="{mugserver}{values['characterID']}.jpg">
     </div>
   </div>
   {#if editable}

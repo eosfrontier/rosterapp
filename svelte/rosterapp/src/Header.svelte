@@ -1,6 +1,5 @@
 <script>
   export let rosterId = 0
-  export let rostername = 'people roster'
   let rosterNames = {}
 
   import Menu from './Menu.svelte'

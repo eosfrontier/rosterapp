@@ -23,6 +23,8 @@
   }
 </script>
 
+<svelte:window on:click={() => { if(visible) { visible = false }}}/>
+
 <div id="headermenu" class="header-button menu-button" class:visible on:click|stopPropagation={setVisible}>&#61641;
   <div class="header-menu menu-content">
     <div id="headermenu-list">
