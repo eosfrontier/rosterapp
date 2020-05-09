@@ -1,14 +1,29 @@
 const orthanc = 'http://test.medicorum.space/orthanc/'
+
+export let accountId = 0
+export let canAdmin = false
+
 let fetchtoken = null
 let token = ''
-export let accountId = 0
+const adminusers = [818]
+const admingroups = [8,30]
 
 async function getToken()
 {
   if (!fetchtoken) fetchtoken = fetch('http://test.medicorum.space/roster/assets/id.php').then(response => response.json())
-  let data = await fetchtoken
-  accountId = data.id
-  return data.token
+  let idandtoken = await fetchtoken
+  accountId = idandtoken.id
+  if (adminusers.indexOf(accountId) >= 0) {
+    canAdmin = true
+  } else {
+    for (var i = 0; i < admingroups.length; i++) {
+      if (idandtoken.groups[admingroups[i]]) {
+        canAdmin = true
+        break
+      }
+    }
+  }
+  return idandtoken.token
 }
 async function postJson(url, data)
 {

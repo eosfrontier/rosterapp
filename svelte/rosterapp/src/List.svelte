@@ -96,7 +96,7 @@
 <div id="main-body">
   <div id="roster-list">
     {#each characters.filter(isMember) as values (values.characterID)}
-      <Entry fields={fields} values={values} meta={characterMeta[values.characterID]} editable={editor} bind:editing={characterEditing[values.characterID]} on:delete={deleteEntry}/>
+      <Entry fields={fields} values={values} meta={characterMeta[values.characterID]} editable={editor} bind:editing={characterEditing[values.characterID]} on:delete={deleteEntry} on:updated={getMeta}/>
     {/each}
     {#if editor}
       <div class="roster-entry add-new" on:click|stopPropagation={() => searchVisible=true}>
