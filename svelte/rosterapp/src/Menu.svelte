@@ -3,16 +3,20 @@
   export let rosterNames = {}
   export let visible
 
-  import { fetchMeta } from './Orthanc.svelte'
-  fetchMeta({meta:'roster:type'}).then((data) => {
-    let newRosterNames = {}
-    rosters = data.map((el) => {
-      let rv = el.value.split(':')
-      let rn = rv[0]+' '+(rv[2] || 'roster')
-      newRosterNames[el.character_id] = rv[3] || rn
-      return {id:el.character_id, name:rn}
+  import { fetchMeta } from './orthanc.js'
+  import { onMount } from 'svelte'
+
+  onMount(() => {
+    fetchMeta({meta:'roster:type'}).then((data) => {
+      let newRosterNames = {}
+      rosters = data.map((el) => {
+        let rv = el.value.split(':')
+        let rn = rv[0]+' '+(rv[2] || 'roster')
+        newRosterNames[el.character_id] = rv[3] || rn
+        return {id:el.character_id, name:rn}
+      })
+      rosterNames = newRosterNames
     })
-    rosterNames = newRosterNames
   })
   function setVisible(e) {
     if (e.target == this) {

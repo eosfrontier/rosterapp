@@ -1,6 +1,5 @@
 <script>
   export let rosterId = 0
-  export let accountId = 818
 
   let fields = []
   let characterMeta = {}
@@ -10,7 +9,8 @@
 
   import Entry from './Entry.svelte'
   import PersonSearch from './PersonSearch.svelte'
-  import { fetchCharacters, fetchMeta, updateMeta, deleteMeta } from './Orthanc.svelte'
+  import { fetchCharacters, fetchMeta, updateMeta, deleteMeta, accountId } from './orthanc.js'
+  import { onMount } from 'svelte'
 
   $: rosterId && fetchMeta({id:rosterId}).then(loadFields)
 
@@ -42,6 +42,7 @@
         return { name:name, order:order, flags:flags,title:title, editable:editable}
       }
     }).filter(e=>e).sort((a,b) => a.order-b.order)
+    fields.find(f => f.editable).first = true
     getMeta()
   }
 
@@ -61,7 +62,13 @@
   }
 
   let characters = []
-  fetchCharacters().then(data => characters = data.filter(c => c.character_name).sort((a,b) => a.character_name.localeCompare(b.character_name)))
+
+  onMount(() => {
+    fetchCharacters().then(data => characters =
+      data.filter(c => c.character_name).sort(
+        (a,b) => a.character_name.localeCompare(b.character_name)))
+  })
+
   $: editor = isEditor(characters.find(c => c.accountID == accountId), characterMeta, rosterId) 
 
   function isEditor(mycharacter, meta=characterMeta, rosterid=rosterId) {
@@ -76,7 +83,7 @@
 
   function addPerson(event) {
     updateMeta(event.detail.id, { name: primary, value: '' }).then(getMeta)
-    characterEditing[event.detail.id] = true
+    characterEditing[event.detail.id] = "initial"
   }
 
   function deleteEntry(event) {
@@ -88,7 +95,7 @@
 
 <div id="main-body">
   <div id="roster-list">
-    {#each characters.filter(isMember) as values}
+    {#each characters.filter(isMember) as values (values.characterID)}
       <Entry fields={fields} values={values} meta={characterMeta[values.characterID]} editable={editor} bind:editing={characterEditing[values.characterID]} on:delete={deleteEntry}/>
     {/each}
     {#if editor}

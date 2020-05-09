@@ -35,7 +35,7 @@
 <div id="add-person-popup" class="add-popup" class:visible on:click|stopPropagation>
   <div class="popup-header">
     <div>Select a new <span class="roster-type">person</span>
-      <input type="text" placeholder="Search" id="search-input" bind:value={searchkey}>
+      <input type="text" placeholder="Search" id="search-input" bind:value={searchkey} autofocus>
     </div>
   </div>
   <div class="popup-person-list">
