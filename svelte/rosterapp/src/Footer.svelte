@@ -1,14 +1,10 @@
 <script>
-  import { canAdmin, accountId } from './orthanc.js'
-  export let isadmin = false
-
-  $: console.log(canAdmin)
-  $: console.log(accountId)
+  import { canAdmin, isAdmin } from './orthanc.js'
 </script>
 
 <footer id="footerframe">
-  {#if canAdmin}
-    <div id="admin_button" title="Application Admin" class:isadmin on:click={() => isadmin=!isadmin}/>
+  {#if $canAdmin}
+    <div id="admin_button" title="Application Admin" class:isadmin={$isAdmin} on:click={() => $isAdmin=!$isAdmin}/>
   {/if}
   <div id="footer_tagline">
     <div id="footer_logo"><img alt="ACME" src="images/logo_acme_dark_small.png" height="60px"></div>

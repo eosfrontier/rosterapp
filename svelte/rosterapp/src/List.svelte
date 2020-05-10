@@ -9,7 +9,7 @@
 
   import Entry from './Entry.svelte'
   import PersonSearch from './PersonSearch.svelte'
-  import { fetchCharacters, fetchMeta, updateMeta, deleteMeta, accountId } from './orthanc.js'
+  import { fetchCharacters, fetchMeta, updateMeta, deleteMeta, accountId, isAdmin } from './orthanc.js'
   import { onMount } from 'svelte'
 
   $: rosterId && fetchMeta({id:rosterId}).then(loadFields)
@@ -69,7 +69,7 @@
         (a,b) => a.character_name.localeCompare(b.character_name)))
   })
 
-  $: editor = isEditor(characters.find(c => c.accountID == accountId), characterMeta, rosterId) 
+  $: editor = isEditor(characters.find(c => c.accountID == $accountId), characterMeta, rosterId) || $isAdmin
 
   function isEditor(mycharacter, meta=characterMeta, rosterid=rosterId) {
     if (!mycharacter) return ''

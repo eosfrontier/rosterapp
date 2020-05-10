@@ -1,7 +1,10 @@
 const orthanc = 'http://test.medicorum.space/orthanc/'
 
-export let accountId = 0
-export let canAdmin = false
+import { writable } from 'svelte/store'
+
+export const accountId = writable(0)
+export const canAdmin = writable(false)
+export const isAdmin = writable(false)
 
 let fetchtoken = null
 let token = ''
@@ -12,13 +15,13 @@ async function getToken()
 {
   if (!fetchtoken) fetchtoken = fetch('http://test.medicorum.space/roster/assets/id.php').then(response => response.json())
   let idandtoken = await fetchtoken
-  accountId = idandtoken.id
-  if (adminusers.indexOf(accountId) >= 0) {
-    canAdmin = true
+  accountId.set(idandtoken.id)
+  if (adminusers.indexOf(idandtoken.id) >= 0) {
+    canAdmin.set(true)
   } else {
     for (var i = 0; i < admingroups.length; i++) {
       if (idandtoken.groups[admingroups[i]]) {
-        canAdmin = true
+        canAdmin.set(true)
         break
       }
     }
