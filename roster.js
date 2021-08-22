@@ -918,6 +918,6 @@ function set_cookie(cookie, value)
 {
     var expir = new Date()
     expir.setYear(expir.getFullYear() + 1)
-    document.cookie = cookie+'='+encodeURIComponent(value)+';expires='+expir.toUTCString()
+    document.cookie = cookie+'='+encodeURIComponent(value)+';SameSite=None;Secure;expires='+expir.toUTCString()
 }
 
