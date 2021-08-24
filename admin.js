@@ -1,8 +1,3 @@
-$.get('assets/id.php', load, 'json')
-
-var orthanc = 'https://api.eosfrontier.space/orthanc'
-if (!window.location.toString().match(/eosfrontier\.space/)) { orthanc = '/orthanc' }
-
 var default_field_types = {
    "roster:character:faction": { fieldlabel: "Faction", field_external_table: true },
    "roster:character:rank": { fieldlabel: "Rank", field_external_table: true }
@@ -20,22 +15,9 @@ var clienttoken
 var adminusers = [818]
 var admingroups = [8,30]
 
-$.postjson = function(url, data, callback, context) {
-    data['token'] = clienttoken
-    $.ajax({
-        'type': 'POST',
-        'url': url,
-        'contentType': 'text/plain',
-        'context': context ? context : data,
-        'data': JSON.stringify(data),
-        'dataType': 'json',
-        'error': function(xhr,stat,err) { if (xhr.status == 404) { callback([]) } },
-        'success': callback
-    })
-}
-
 function load(idandtoken)
 {
+    initialize_api(idandtoken)
     clienttoken = idandtoken.token
     if (!clienttoken) { return }
     $('#nologin').remove()
@@ -50,8 +32,8 @@ function load(idandtoken)
             }
         }
     }
-    get_accountid(accountid)
-    $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
+    get_accountid(accountid, get_my_charid)
+    get_types(fill_roster_list)
 
     $('#roster-list').on('click','.roster-button-edit:not(.disabled)', edit_roster)
     $('#roster-list').on('click','.roster-button-undo:not(.disabled)', undo_roster)
@@ -102,13 +84,6 @@ function add_adminbutton()
     $('#admin_button').click(set_admin)
 }
 
-function get_accountid(accountid)
-{
-    if (accountid) {
-        $.postjson(orthanc+'/character/', { 'accountID': accountid }, get_my_charid)
-    }
-}
-
 function get_my_charid(chardata)
 {
     gMyCharID = chardata.characterID
@@ -117,8 +92,8 @@ function get_my_charid(chardata)
 
 function get_accountacl()
 {
-    if (gMyCharID && gAdminList) {
-        $.postjson(orthanc+'/character/meta/', { 'id': gMyCharID, 'meta': gAdminList.join(',') }, set_accountacl)
+    if (gMyCharID && (gAdminList.length > 0)) {
+        get_character_meta(gMyCharID, gAdminList, set_accountacl)
     }
 }
 
@@ -165,7 +140,7 @@ function fill_roster_list(roster_list)
         if (rtent[2] != '') { roster_label = rtent[2] }
         mhtml.push('<a class="header-menu-roster_type menu-item" href="../roster/#',rt.rosterID,'">',rt.roster_type,' ',roster_label,'</div>')
         html.push(roster_entry(rt))
-        $.postjson(orthanc+'/character/meta/', { 'id': rid }, fill_roster_entry)
+        get_roster_meta(rid, fill_roster_entry)
         gAdminList.push('roster:admin:'+rid)
     }
     get_accountacl()
@@ -188,10 +163,11 @@ function fill_roster_entry(fields)
 {
     var rid = this.id
     var rt = { rosterID: rid, fields: {} }
-    roster_field_types[rid] = []
+    roster_field_types[rid] = {}
     for (var f = 0; f < fields.length; f++) {
         var entry = fields[f]
         var rtent = entry.value.split(':')
+        roster_field_types[rid][entry.name] = entry.value
         if (entry.name == 'roster:type') {
             rt['roster_type'] = rtent[0]
             rt['roster_flags'] = rtent[1]
@@ -210,7 +186,6 @@ function fill_roster_entry(fields)
                 fieldlabel: rtent.slice(2).join(':'),
                 field_external_table: external
             }
-            roster_field_types[rid].push(entry.name)
         }
     }
     $('#roster-list .roster-entry[data-roster-id="'+rid+'"]').replaceWith(roster_entry(rt))
@@ -456,7 +431,7 @@ function undo_roster()
 {
     var re = $(this).closest('.roster-entry')
     if (re) {
-        $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
+        get_types(fill_roster_list)
         re.addClass('disabled')
     }
 }
@@ -484,24 +459,25 @@ function save_roster_entry(rids)
         alert('Primary field required')
         return
     }
+    var addowner = false
     var roster_type = inputval_or_text(re.find('.roster-field-roster_type .field-text'))
     var roster_desc = inputval_or_text(re.find('.roster-field-roster_description')) || (roster_type+' roster')
     if (!roster_desc.match(/^[a-z]+:/)) { roster_desc = ':'+roster_desc }
-    var savefields = [
-        { "name": "roster:type", "value": roster_type+'::'+roster_desc }
-    ]
     var rosterID = re.attr('data-roster-id')
     if (!rosterID) {
-        if (rids) {
+        if (!gIsAdmin) addowner = true
+        if (!rids) {
+            // Fetch list of existing rosters, then rerun this function
+            get_types(save_roster_entry, this)
+            return
+        } else {
+            // List of existing rosters was fetched, determine new id
             rosterID = -1
             for (var r = 0; r < rids.length; r++) {
                 if (rids[r].character_id <= rosterID) {
                     rosterID = rids[r].character_id - 1
                 }
             }
-        } else {
-            $.postjson(orthanc+'/character/meta/', { 'meta':'roster:type' }, save_roster_entry, this)
-            return
         }
     }
     $('#add-field-popup .search-field input').each(function() {
@@ -517,10 +493,14 @@ function save_roster_entry(rids)
     })
     var old_fields = {}
     if (roster_field_types[rosterID]) {
-        for (var f = 0; f < roster_field_types[rosterID].length; f++) {
-            old_fields[roster_field_types[rosterID][f]] = true
+        for (var f in roster_field_types[rosterID]) {
+            old_fields[f] = roster_field_types[rosterID][f]
         }
     }
+    var savefields = [
+        { "name": "roster:type", "value": roster_type+'::'+roster_desc, 'old_value': old_fields['roster:type'] }
+    ]
+    delete old_fields['roster:type']
     var ord = 1
     re.find('.roster-field[data-fieldname]').each(function() {
         var fieldtype = []
@@ -536,27 +516,23 @@ function save_roster_entry(rids)
         if (field_types[fieldname] && field_types[fieldname].fieldlabel) {
             fieldlabel = field_types[fieldname].fieldlabel
         }
-        savefields.push({ 'name':fieldname, 'value':ord+':'+fieldtype+':'+fieldlabel })
+        savefields.push({ 'name':fieldname, 'value':ord+':'+fieldtype+':'+fieldlabel, 'old_value': old_fields[fieldname] })
         delete old_fields[fieldname]
         ord++
     })
     var fields_todelete = []
     for (var of in old_fields) {
-        fields_todelete.push({'name': of})
+        fields_todelete.push({'name': of, 'value': old_fields[of]})
     }
     if (fields_todelete.length > 0) {
-        $.postjson(orthanc+'/character/meta/delete.php', {
-            id: rosterID, meta: fields_todelete }, cleaned_roster)
+        delete_roster_meta(rosterID, fields_todelete, cleaned_roster)
     }
-    if (gIsAdmin) {
-        $.postjson(orthanc+'/character/meta/update.php', {
-            id: rosterID, meta: savefields }, saved_roster)
+    if (!addowner) {
+        save_roster_meta(rosterID, savefields, saved_roster)
     } else {
-        $.postjson(orthanc+'/character/meta/update.php', {
-            id: gMyCharID, meta: [{'name':'roster:admin:'+rosterID, 'value':'owner'}]}, function() {
-                $.postjson(orthanc+'/character/meta/update.php', {
-                    id: rosterID, meta: savefields }, saved_roster)
-                })
+        save_character_meta(gMyCharID, 'roster:admin:'+rosterID, null, 'owner', function() {
+            save_roster_meta(rosterID, savefields, saved_roster)
+        })
     }
     var savebutton = re.find('.roster-button-save')
     savebutton.addClass('disabled')
@@ -569,7 +545,7 @@ function cleaned_roster(result)
 
 function saved_roster(result)
 {
-    $.postjson(orthanc+'/character/meta/', {'meta':'roster:type'}, fill_roster_list)
+    get_types(fill_roster_list)
 }
 
 function delete_roster()

@@ -1,7 +1,3 @@
-$.get('assets/id.php', load, 'json')
-
-var orthancurl = 'https://apidev2.eosfrontier.space/orthanc'
-// if (!window.location.toString().match(/eosfrontier\.space/)) { orthancurl = '/orthanc' }
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 
 // $.get(orthancurl+'/v2/joomla', load, 'json')
@@ -12,7 +8,6 @@ var gAccountID = 0
 var gMyCharID = 0
 var gIsOwner = false
 var gIsAdmin = false
-var loading = {}
 var roster_type
 var roster_label = 'roster'
 var gRosterID = 0
@@ -32,97 +27,9 @@ var search_value = ''
 var adminusers = [818]
 var admingroups = [8,30]
 
-/*
-$.postjson = function(url, data, callback, context) {
-    data['token'] = clienttoken
-    $.ajax({
-        'type': 'POST',
-        'url': orthancurl+url,
-        'contentType': 'text/plain',
-        'context': context ? context : data,
-        'data': JSON.stringify(data),
-        'dataType': 'json',
-        'success': callback,
-    })
-}
-*/
-
-var orthancv2 = function() {
-    console.log('Not logged in')
-}
-
-function get_types(callback)
-{
-    loading["types"] = true
-    orthancv2('GET', 'app/options', callback, { 'option_name': 'roster:%:type', 'wildcard': true })
-    // orthancv2('GET', 'meta', callback, { 'meta_name': 'roster:type', 'all_characters': true })
-}
-
-function get_characters(callback)
-{
-    loading["chars"] = true
-    orthancv2('GET', 'chars_all', callback, { 'all_characters': true})
-}
-
-function get_roster(rosterid, callback)
-{
-    loading["roster"] = true
-    orthancv2('GET', 'app/options', callback, { 'option_name': 'roster:'+rosterid+':%', 'wildcard': true })
-    // orthancv2('GET', 'meta', callback, { 'id': rosterid })
-}
-
-function get_rostermeta(meta_fields, callback, context)
-{
-    loading["meta"] = true
-    orthancv2('GET', 'meta', callback, { 'meta_name': meta_fields.join(',') }, context)
-}
-
-function get_character_meta(charid, meta_fields, callback)
-{
-    orthancv2('GET', 'meta', callback, { 'id': charid, 'meta_name': meta_fields.join(',') })
-}
-
-function save_character_meta(charid, fieldname, oldvalue, newvalue, callback)
-{
-    console.log(charid, fieldname, oldvalue, newvalue)
-    if (oldvalue != null) {
-        orthancv2('PATCH', 'meta', callback, { 'id': charid, 'meta': JSON.stringify([{ 'name': fieldname, 'old_value': oldvalue, 'value': newvalue }]) })
-    } else {
-        orthancv2('POST', 'meta', callback, { 'id': charid, 'meta': JSON.stringify([{ 'name': fieldname, 'value': newvalue }]) })
-    }
-}
-
-function delete_character_meta(charid, fieldname, oldvalue, callback)
-{
-    orthancv2('DELETE', 'meta', callback, { 'id': charid, 'meta': [{ 'name': fieldname, 'value': oldvalue, 'deleted': true }] })
-}
-
 function load(idandtoken)
 {
-    var clienttoken = idandtoken.token
-    if (!clienttoken) { return }
-    $('#nologin').remove()
-    orthancv2 = function (verb, endpoint, callback, data, context)
-    {
-        if (!data) data = {}
-        params = {
-            'type': verb,
-            'url': orthancurl+'/v2/'+endpoint+'/',
-            'dataType': 'json',
-            'context': context ? context : data,
-            'success': callback
-        }
-        if (verb == 'GET') {
-            data['token'] = clienttoken
-            params['headers'] = data
-        } else {
-            params['contentType'] = 'application/json'
-            params['data'] = JSON.stringify(data)
-            params['headers'] = {token: clienttoken}
-        }
-        $.ajax(params)
-    }
-
+    initialize_api(idandtoken)
     gAccountID = parseInt(idandtoken.id)
     if (adminusers.indexOf(gAccountID) >= 0) {
         add_adminbutton()
@@ -152,12 +59,6 @@ function load2(appid)
 {
     gAppId = appid
     get_types(fill_roster_types)
-    /*
-    loading["types"] = true
-    $.postjson('/character/meta/', {'meta':'roster:type'}, fill_roster_types)
-    loading["chars"] = true
-    $.postjson('/character/', { "all_characters":"all_characters" }, fill_roster_chars)
-    */
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('#search-person-list').on('click','.search-person', add_new_person)
     $(document).click(hide_popups)
@@ -220,10 +121,6 @@ function fill_roster_types(rosters)
     $('#headermenu-list').html(html.join(''))
     if (gRosterID != 0) {
         get_roster(gRosterID, fill_roster_fields)
-        /*
-        loading["roster"] = true
-        $.postjson('/character/meta/', {'id':gRosterID}, fill_roster_fields)
-        */
     } else {
         $('.menu-button').addClass('visible') 
     }
@@ -329,11 +226,7 @@ function fill_roster_fields(roster)
     person_fields.unshift('character_name')
     person_fields.unshift('character_image')
     loading["roster"] = false
-    get_rostermeta(meta_fields, fill_roster_meta)
-    /*
-    loading["meta"] = true
-    $.postjson('/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
-    */
+    get_all_roster_meta(meta_fields, fill_roster_meta)
 }
 
 function fill_roster_chars(people)
@@ -458,12 +351,6 @@ function set_roster_type(rosid)
     $('#roster-list').html('<h3 class="loading">Loading</h3>')
     get_roster(gRosterID, fill_roster_fields)
     get_characters(fill_roster_chars)
-    /*
-    loading["chars"] = true
-    loading["roster"] = true
-    $.postjson('/character/meta/', {'id':gRosterID}, fill_roster_fields)
-    $.postjson('/character/', { "all_characters":"all_characters" }, fill_roster_chars)
-    */
     setTimeout(hide_popups, 0)
 }
 
@@ -736,10 +623,6 @@ function replace_one_char(fields)
 function unedit_person(rp)
 {
     get_character_meta(rp.attr('data-character-id'), meta_fields, replace_one_char)
-    /*
-    var charid = rp.attr('data-character-id')
-    $.postjson('/character/meta/', { 'id':charid, 'meta':meta_fields.join(',') }, replace_one_char)
-    */
 }
 
 function edit_person()
@@ -866,16 +749,8 @@ function save_person_checkbox()
     if (characterID && fieldname) {
         if ($(this).is(':checked')) {
             save_character_meta(characterID, fieldname, null, newvalue, saved_person_field)
-            /*
-            $.postjson('/character/meta/update.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
-            */
         } else {
             delete_character_meta(characterID, fieldname, newvalue, saved_person_field)
-            /*
-            $.postjson('/character/meta/delete.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
-            */
         }
     }
 }
@@ -899,16 +774,9 @@ function save_person_field()
             var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue }] }
             if (input.hasClass("owner") && oldvalue == 'owner') {
                 // Prevent removing last owner
-                get_rostermeta([fieldname], delete_roster_owner, {characterID: characterID, field: fieldname, oldvalue: oldvalue, newvalue: newvalue})
-                /*
-                $.postjson('/character/meta/', {
-                    meta:fieldname }, delete_roster_owner, updatedata)
-                */
+                get_all_roster_meta([fieldname], delete_roster_owner, {characterID: characterID, field: fieldname, oldvalue: oldvalue, newvalue: newvalue})
             } else {
                 save_character_meta(characterID, fieldname, oldvalue, newvalue, saved_person_field)
-                /*
-                $.postjson('/character/meta/update.php', updatedata, saved_person_field)
-                */
             }
         }
     }
@@ -931,9 +799,6 @@ function delete_roster_owner(result)
         }
     }
     save_character_meta(this.characterID, this.fieldname, this.oldvalue, this.newvalue, saved_person_field)
-    /*
-    $.postjson('/character/meta/update.php', this, saved_person_field)
-    */
 }
 
 function saved_person_field(result)
@@ -996,10 +861,6 @@ function delete_person()
                             oldvalue = $(this).text()
                         }
                         delete_character_meta(characterID, fieldname, oldvalue, saved_person_field)
-                        /*
-                        $.postjson('/character/meta/delete.php', {
-                            id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
-                            */
                     }
                 })
             }
@@ -1015,10 +876,6 @@ function save_conflict()
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
         delete_character_meta(characterID, fieldname, oldvalue, saved_person_field)
-        /*
-        $.postjson('/character/meta/delete.php', {
-            id: characterID, meta: [{ name: fieldname, value: oldvalue }] }, saved_person_field)
-            */
     })
 }
 
