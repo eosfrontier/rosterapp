@@ -763,6 +763,7 @@ function save_person_field()
     }
     var newvalue = input.val()
     var oldvalue = input.attr('value')
+    if (input.hasClass('owner') && (oldvalue == "")) { oldvalue = null }
     if (oldvalue == null) { oldvalue = null }
     if (newvalue == null) { newvalue = null }
     var field = input.closest('.editable')
@@ -772,9 +773,17 @@ function save_person_field()
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
             var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue }] }
-            if (input.hasClass("owner") && oldvalue == 'owner') {
-                // Prevent removing last owner
-                get_all_roster_meta([fieldname], delete_roster_owner, {characterID: characterID, field: fieldname, oldvalue: oldvalue, newvalue: newvalue})
+            if (input.hasClass("owner")) {
+                if (oldvalue == 'owner') {
+                    // Prevent removing last owner
+                    get_all_roster_meta([fieldname], delete_roster_owner, {characterID: characterID, field: fieldname, oldvalue: oldvalue, newvalue: newvalue})
+                } else {
+                    if (newvalue == "") {
+                        delete_character_meta(characterID, fieldname, oldvalue, saved_person_field)
+                    } else {
+                        save_character_meta(characterID, fieldname, oldvalue, newvalue, saved_person_field)
+                    }
+                }
             } else {
                 save_character_meta(characterID, fieldname, oldvalue, newvalue, saved_person_field)
             }
@@ -798,12 +807,11 @@ function delete_roster_owner(result)
             return
         }
     }
-    save_character_meta(this.characterID, this.fieldname, this.oldvalue, this.newvalue, saved_person_field)
+    delete_character_meta(this.characterID, this.fieldname, this.oldvalue, saved_person_field)
 }
 
 function saved_person_field(result)
 {
-    console.log('saved_person_field', result, this)
     if (result == "success") {
         var entry = $("#roster-list .roster-entry[data-character-id='"+this.id+"']")
         for (var i = 0; i < this.meta.length; i++) {
