@@ -1,6 +1,6 @@
 $.get('assets/id.php', load, 'json')
 
-var orthancurl = 'https://api.eosfrontier.space/orthanc'
+var orthancurl = 'https://apidev2.eosfrontier.space/orthanc'
 // if (!window.location.toString().match(/eosfrontier\.space/)) { orthancurl = '/orthanc' }
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
 
@@ -54,7 +54,8 @@ var orthancv2 = function() {
 function get_types(callback)
 {
     loading["types"] = true
-    orthancv2('GET', 'chars_all/meta', callback, { 'meta_name': 'roster:type', 'all_characters': true })
+    orthancv2('GET', 'app/options', callback, { 'option_name': 'roster:%:type', 'wildcard': true })
+    // orthancv2('GET', 'meta', callback, { 'meta_name': 'roster:type', 'all_characters': true })
 }
 
 function get_characters(callback)
@@ -63,35 +64,37 @@ function get_characters(callback)
     orthancv2('GET', 'chars_all', callback, { 'all_characters': true})
 }
 
-function get_roster(charid, callback)
+function get_roster(rosterid, callback)
 {
     loading["roster"] = true
-    orthancv2('GET', 'chars_all/meta', callback, { 'id': charid })
+    orthancv2('GET', 'app/options', callback, { 'option_name': 'roster:'+rosterid+':%', 'wildcard': true })
+    // orthancv2('GET', 'meta', callback, { 'id': rosterid })
 }
 
 function get_rostermeta(meta_fields, callback, context)
 {
     loading["meta"] = true
-    orthancv2('GET', 'chars_all/meta', callback, { 'meta_name': meta_fields.join(',') }, context)
+    orthancv2('GET', 'meta', callback, { 'meta_name': meta_fields.join(',') }, context)
 }
 
 function get_character_meta(charid, meta_fields, callback)
 {
-    orthancv2('GET', 'chars_all/meta', callback, { 'id': charid, 'meta_name': meta_fields.join(',') })
+    orthancv2('GET', 'meta', callback, { 'id': charid, 'meta_name': meta_fields.join(',') })
 }
 
 function save_character_meta(charid, fieldname, oldvalue, newvalue, callback)
 {
-    if (oldvalue) {
-        orthancv2('PATCH', 'chars_all/meta', callback, { 'id': charid, 'meta': [{ 'name': fieldname, 'old_value': oldvalue, 'value': newvalue }] })
+    console.log(charid, fieldname, oldvalue, newvalue)
+    if (oldvalue != null) {
+        orthancv2('PATCH', 'meta', callback, { 'id': charid, 'meta': JSON.stringify([{ 'name': fieldname, 'old_value': oldvalue, 'value': newvalue }]) })
     } else {
-        orthancv2('POST', 'chars_all/meta', callback, { 'id': charid, 'meta': [{ 'name': fieldname, 'value': newvalue }] })
+        orthancv2('POST', 'meta', callback, { 'id': charid, 'meta': JSON.stringify([{ 'name': fieldname, 'value': newvalue }]) })
     }
 }
 
 function delete_character_meta(charid, fieldname, oldvalue, callback)
 {
-    orthancv2('DELETE', 'chars_all/meta', callback, { 'id': charid, 'meta': [{ 'name': fieldname, 'value': oldvalue }] })
+    orthancv2('DELETE', 'meta', callback, { 'id': charid, 'meta': [{ 'name': fieldname, 'value': oldvalue, 'deleted': true }] })
 }
 
 function load(idandtoken)
@@ -102,15 +105,22 @@ function load(idandtoken)
     orthancv2 = function (verb, endpoint, callback, data, context)
     {
         if (!data) data = {}
-        data['token'] = clienttoken
-        $.ajax({
+        params = {
             'type': verb,
             'url': orthancurl+'/v2/'+endpoint+'/',
-            'headers': data,
             'dataType': 'json',
             'context': context ? context : data,
             'success': callback
-        })
+        }
+        if (verb == 'GET') {
+            data['token'] = clienttoken
+            params['headers'] = data
+        } else {
+            params['contentType'] = 'application/json'
+            params['data'] = JSON.stringify(data)
+            params['headers'] = {token: clienttoken}
+        }
+        $.ajax(params)
     }
 
     gAccountID = parseInt(idandtoken.id)
@@ -197,7 +207,6 @@ function add_adminbutton()
 
 function fill_roster_types(rosters)
 {
-    console.log(rosters)
     var html = []
     for (var i = 0; i < rosters.length; i++) {
         var rtv = rosters[i].value.split(':')
@@ -929,12 +938,13 @@ function delete_roster_owner(result)
 
 function saved_person_field(result)
 {
+    console.log('saved_person_field', result, this)
     if (result == "success") {
         var entry = $("#roster-list .roster-entry[data-character-id='"+this.id+"']")
         for (var i = 0; i < this.meta.length; i++) {
             var field = entry.find(".editable[data-field-name='"+this.meta[i].name+"']")
             field.removeClass('error')
-            if (this.meta[i].value == null) {
+            if (this.meta[i].deleted) {
                 entry.addClass('deleted')
                 field.text('')
             } else {
