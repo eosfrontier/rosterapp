@@ -125,8 +125,8 @@ function fill_roster_list(roster_list)
     roster_field_types = {}
     gAdminList = []
     for (var t = 0; t < roster_list.length; t++) {
-        var rid = roster_list[t].character_id
         var rtent = roster_list[t].value.split(':')
+        var rid = rtent[1]
         var rt = {
             rosterID: rid,
             roster_type: rtent[0],
@@ -472,10 +472,18 @@ function save_roster_entry(rids)
             return
         } else {
             // List of existing rosters was fetched, determine new id
-            rosterID = -1
-            for (var r = 0; r < rids.length; r++) {
-                if (rids[r].character_id <= rosterID) {
-                    rosterID = rids[r].character_id - 1
+            rosterID = 'roster:'+roster_type
+            found = true
+            rosterCount = 0
+            while (found) {
+                found = false
+                for (var r = 0; r < rids.length; r++) {
+                    if (rids[r].name == rosterID) {
+                        rosterCount += 1
+                        rosterID = 'roster:'+roster_type+'-'+rosterCount
+                        found = true
+                        break
+                    }
                 }
             }
         }

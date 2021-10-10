@@ -10,7 +10,7 @@ var gIsOwner = false
 var gIsAdmin = false
 var roster_type
 var roster_label = 'roster'
-var gRosterID = 0
+var gRosterID = ''
 var person_fields
 var primary_fields
 var multi_fields = {}
@@ -41,7 +41,7 @@ function load(idandtoken)
             }
         }
     }
-    gRosterID = parseInt(window.location.hash.replace(/^#/,''))
+    gRosterID = window.location.hash.replace(/^#/,'')
     if (gRosterID) {
         set_cookie('roster_id', gRosterID)
     } else {
@@ -110,16 +110,17 @@ function fill_roster_types(rosters)
 {
     var html = []
     for (var i = 0; i < rosters.length; i++) {
+        var rtid = rosters[i].name.replace(/^roster:/, '')
         var rtv = rosters[i].value.split(':')
         var rt = rtv[0]
         var rl = 'roster'
         if (rtv[2] != '') { rl = rtv[2] }
-        html.push('<a class="header-menu-roster_type menu-item" href="#',rosters[i].character_id,'">',rt,' ',rl,'</a>')
+        html.push('<a class="header-menu-roster_type menu-item" href="#',rtid,'">',rt,' ',rl,'</a>')
 
     }
     loading["types"] = false
     $('#headermenu-list').html(html.join(''))
-    if (gRosterID != 0) {
+    if (gRosterID != '') {
         get_roster(gRosterID, fill_roster_fields)
     } else {
         $('.menu-button').addClass('visible') 
@@ -244,6 +245,7 @@ function fill_roster_meta(fields)
     for (var p = 0; p < fields.length; p++) {
         fields[p].id = parseInt(fields[p].id)
         if ((fields[p].character_id < 0) && (fields[p].character_id != gRosterID)) {
+            // Make primary fields from other rosters non-editable TODO
             var fv = fields[p].value.split(':')
             if (fv[1] != '') {
                 delete editable_fields[fields[p].name]
