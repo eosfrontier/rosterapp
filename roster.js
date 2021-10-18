@@ -1,8 +1,6 @@
-$.get('assets/id.php', load, 'json')
-
-var orthanc = 'https://api.eosfrontier.space/orthanc'
-if (!window.location.toString().match(/eosfrontier\.space/)) { orthanc = '/orthanc' }
 var mugserver = 'https://www.eosfrontier.space/eos_douane/images/mugs/'
+
+// $.get(orthancurl+'/v2/joomla', load, 'json')
 
 var gPeople = {}
 var gCharacters
@@ -10,7 +8,6 @@ var gAccountID = 0
 var gMyCharID = 0
 var gIsOwner = false
 var gIsAdmin = false
-var loading = {}
 var roster_type
 var roster_label = 'roster'
 var gRosterID = 0
@@ -19,35 +16,20 @@ var primary_fields
 var multi_fields = {}
 var func_fields = {}
 var sort_field
+var sort_reverse
 var special_fields = { character_image:'<div><img src="'+mugserver+'{{characterID}}.jpg"></div>' }
 var special_fieldsnew = { character_image:'<div><div class="image-add-new">+</div></div>' }
 var editable_fields
 var meta_fields = []
 var character_fields = []
 var search_value = ''
-var clienttoken
 
 var adminusers = [818]
 var admingroups = [8,30]
 
-$.postjson = function(url, data, callback, context) {
-    data['token'] = clienttoken
-    $.ajax({
-        'type': 'POST',
-        'url': orthanc+url,
-        'contentType': 'text/plain',
-        'context': context ? context : data,
-        'data': JSON.stringify(data),
-        'dataType': 'json',
-        'success': callback,
-    })
-}
-
 function load(idandtoken)
 {
-    clienttoken = idandtoken.token
-    if (!clienttoken) { return }
-    $('#nologin').remove()
+    initialize_api(idandtoken)
     gAccountID = parseInt(idandtoken.id)
     if (adminusers.indexOf(gAccountID) >= 0) {
         add_adminbutton()
@@ -68,10 +50,15 @@ function load(idandtoken)
             window.location.hash = '#'+gRosterID
         }
     }
-    loading["types"] = true
-    $.postjson('/character/meta/', {'meta':'roster:type'}, fill_roster_types)
-    loading["chars"] = true
-    $.postjson('/character/', { "all_characters":"all_characters" }, fill_roster_chars)
+    // orthancv2('GET','app', load2)
+    get_characters(fill_roster_chars)
+    load2(0)
+}
+
+function load2(appid)
+{
+    gAppId = appid
+    get_types(fill_roster_types)
     $('#roster-list').on('click','.roster-entry.add-new',search_new_person)
     $('#search-person-list').on('click','.search-person', add_new_person)
     $(document).click(hide_popups)
@@ -133,8 +120,7 @@ function fill_roster_types(rosters)
     loading["types"] = false
     $('#headermenu-list').html(html.join(''))
     if (gRosterID != 0) {
-        loading["roster"] = true
-        $.postjson('/character/meta/', {'id':gRosterID}, fill_roster_fields)
+        get_roster(gRosterID, fill_roster_fields)
     } else {
         $('.menu-button').addClass('visible') 
     }
@@ -240,8 +226,7 @@ function fill_roster_fields(roster)
     person_fields.unshift('character_name')
     person_fields.unshift('character_image')
     loading["roster"] = false
-    loading["meta"] = true
-    $.postjson('/character/meta/', { "meta":meta_fields.join(',') }, fill_roster_meta)
+    get_all_roster_meta(meta_fields, fill_roster_meta)
 }
 
 function fill_roster_chars(people)
@@ -364,10 +349,8 @@ function set_roster_type(rosid)
     gRosterID = rosid
     set_cookie('roster_id', gRosterID)
     $('#roster-list').html('<h3 class="loading">Loading</h3>')
-    loading["chars"] = true
-    loading["roster"] = true
-    $.postjson('/character/meta/', {'id':gRosterID}, fill_roster_fields)
-    $.postjson('/character/', { "all_characters":"all_characters" }, fill_roster_chars)
+    get_roster(gRosterID, fill_roster_fields)
+    get_characters(fill_roster_chars)
     setTimeout(hide_popups, 0)
 }
 
@@ -639,8 +622,7 @@ function replace_one_char(fields)
 
 function unedit_person(rp)
 {
-    var charid = rp.attr('data-character-id')
-    $.postjson('/character/meta/', { 'id':charid, 'meta':meta_fields.join(',') }, replace_one_char)
+    get_character_meta(rp.attr('data-character-id'), meta_fields, replace_one_char)
 }
 
 function edit_person()
@@ -766,11 +748,9 @@ function save_person_checkbox()
     var characterID = field.closest('.roster-entry').attr('data-character-id')
     if (characterID && fieldname) {
         if ($(this).is(':checked')) {
-            $.postjson('/character/meta/update.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+            save_character_meta(characterID, fieldname, null, newvalue, saved_person_field)
         } else {
-            $.postjson('/character/meta/delete.php', {
-                id: characterID, meta: [{ name: fieldname, value: newvalue }] }, saved_person_field)
+            delete_character_meta(characterID, fieldname, newvalue, saved_person_field)
         }
     }
 }
@@ -783,6 +763,7 @@ function save_person_field()
     }
     var newvalue = input.val()
     var oldvalue = input.attr('value')
+    if (input.hasClass('owner') && (oldvalue == "")) { oldvalue = null }
     if (oldvalue == null) { oldvalue = null }
     if (newvalue == null) { newvalue = null }
     var field = input.closest('.editable')
@@ -792,12 +773,19 @@ function save_person_field()
         var characterID = field.closest('.roster-entry').attr('data-character-id')
         if (characterID && fieldname) {
             var updatedata = { id: characterID, meta: [{ name: fieldname, value: newvalue }] }
-            if (input.hasClass("owner") && oldvalue == 'owner') {
-                // Prevent removing last owner
-                $.postjson('/character/meta/', {
-                    meta:fieldname }, delete_roster_owner, updatedata)
+            if (input.hasClass("owner")) {
+                if (oldvalue == 'owner') {
+                    // Prevent removing last owner
+                    get_all_roster_meta([fieldname], delete_roster_owner, {characterID: characterID, field: fieldname, oldvalue: oldvalue, newvalue: newvalue})
+                } else {
+                    if (newvalue == "") {
+                        delete_character_meta(characterID, fieldname, oldvalue, saved_person_field)
+                    } else {
+                        save_character_meta(characterID, fieldname, oldvalue, newvalue, saved_person_field)
+                    }
+                }
             } else {
-                $.postjson('/character/meta/update.php', updatedata, saved_person_field)
+                save_character_meta(characterID, fieldname, oldvalue, newvalue, saved_person_field)
             }
         }
     }
@@ -819,7 +807,7 @@ function delete_roster_owner(result)
             return
         }
     }
-    $.postjson('/character/meta/update.php', this, saved_person_field)
+    delete_character_meta(this.characterID, this.fieldname, this.oldvalue, saved_person_field)
 }
 
 function saved_person_field(result)
@@ -829,7 +817,7 @@ function saved_person_field(result)
         for (var i = 0; i < this.meta.length; i++) {
             var field = entry.find(".editable[data-field-name='"+this.meta[i].name+"']")
             field.removeClass('error')
-            if (this.meta[i].value == null) {
+            if (this.meta[i].deleted) {
                 entry.addClass('deleted')
                 field.text('')
             } else {
@@ -880,8 +868,7 @@ function delete_person()
                         } else {
                             oldvalue = $(this).text()
                         }
-                        $.postjson('/character/meta/delete.php', {
-                            id: characterID, meta: [{ name: fieldname }] }, saved_person_field)
+                        delete_character_meta(characterID, fieldname, oldvalue, saved_person_field)
                     }
                 })
             }
@@ -896,8 +883,7 @@ function save_conflict()
     var characterID = fc.closest('.roster-entry').attr('data-character-id')
     fc.find('.field-conflict-choose input:not(:checked)').each(function() {
         var oldvalue = $(this).attr('data-fieldvalue')
-        $.postjson('/character/meta/delete.php', {
-            id: characterID, meta: [{ name: fieldname, value: oldvalue }] }, saved_person_field)
+        delete_character_meta(characterID, fieldname, oldvalue, saved_person_field)
     })
 }
 
