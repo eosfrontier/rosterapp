@@ -86,10 +86,12 @@ function save_roster_meta(rosterid, fields, callback)
     }
     if (patchfields.length > 0) {
         calls++
+        // The JSON.stringify is needed as a workaround for the strange way the api operates
         orthancv2('PATCH', 'meta', cb_func, { 'id': rosterid, 'meta': JSON.stringify(patchfields) })
     }
     if (postfields.length > 0) {
         calls++
+        // The JSON.stringify is needed as a workaround for the strange way the api operates
         orthancv2('POST', 'meta', cb_func, { 'id': rosterid, 'meta': JSON.stringify(postfields) })
     }
 }
@@ -101,10 +103,13 @@ function get_character_meta(charid, meta_fields, callback)
 
 function save_character_meta(charid, fieldname, old_value, newvalue, callback)
 {
+    // The JSON.stringify is needed as a workaround for the strange way the api operates
     if (old_value != null) {
-        orthancv2('PATCH', 'meta', callback, { 'id': charid, 'meta': JSON.stringify([{ 'name': fieldname, 'old_value': old_value, 'value': newvalue }]) })
+        var meta = [{ 'name': fieldname, 'old_value': old_value, 'value': newvalue }]
+        orthancv2('PATCH', 'meta', callback, { 'id': charid, 'meta': JSON.stringify(meta) }, { 'id': charid, 'meta': meta })
     } else {
-        orthancv2('POST', 'meta', callback, { 'id': charid, 'meta': JSON.stringify([{ 'name': fieldname, 'value': newvalue }]) })
+        var meta = [{ 'name': fieldname, 'value': newvalue }]
+        orthancv2('POST', 'meta', callback, { 'id': charid, 'meta': JSON.stringify(meta) }, { 'id': charid, 'meta': meta })
     }
 }
 

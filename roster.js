@@ -812,7 +812,14 @@ function delete_roster_owner(result)
 
 function saved_person_field(result)
 {
-    if (result == "success") {
+    // Do a lot of magic to find out if the result was successful because the api returns it inconsistently
+    var success = false
+    if (result == "success") { success = true }
+    else if (result.message == "success") { success = true }
+    else for (var idx in result) {
+        if (result[idx].message == "success") success = true
+    }
+    if (success) {
         var entry = $("#roster-list .roster-entry[data-character-id='"+this.id+"']")
         for (var i = 0; i < this.meta.length; i++) {
             var field = entry.find(".editable[data-field-name='"+this.meta[i].name+"']")
