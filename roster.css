@@ -531,7 +531,6 @@ a#nologin {
     padding-right: 5px;
     padding-top: 2px;
     min-height: 20px;
-    direction: rtl;
 }
 
 .roster-entry > div:last-child {
