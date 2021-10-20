@@ -705,3 +705,5 @@ function set_cookie(cookie, value)
     expir.setYear(expir.getFullYear() + 1)
     document.cookie = cookie+'='+encodeURIComponent(value)+';SameSite=None;Secure;expires='+expir.toUTCString()
 }
+
+api_load(load)

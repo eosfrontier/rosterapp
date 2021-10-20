@@ -1,17 +1,22 @@
-var orthancurl = 'https://api.eosfrontier.space/orthanc'
-if (window.location.toString().match(/eosfrontier\.space/)) {
-    $.get('assets/id.php', load, 'json')
-    // Iffy because function load() this is in admin.js and roster.js
-    // Can probably do better
-} else {
-    // For running/debugging locally.
-    orthancurl = 'https://apidev2.eosfrontier.space/orthanc'
-    $(function() {
-        var s = document.createElement('script')
-        s.type = 'text/javascript'
-        s.src = 'token.js'
-        document.head.append(s)
-    })
+var orthancurl
+
+function api_load(load_callback)
+{
+    orthancurl = 'https://api.eosfrontier.space/orthanc'
+    if (window.location.toString().match(/eosfrontier\.space/)) {
+        $.get('assets/id.php', load_callback, 'json')
+        // Iffy because function load() this is in admin.js and roster.js
+        // Can probably do better
+    } else {
+        // For running/debugging locally.
+        orthancurl = 'https://apidev2.eosfrontier.space/orthanc'
+        $(function() {
+            var s = document.createElement('script')
+            s.type = 'text/javascript'
+            s.src = 'token.js'
+            document.head.append(s)
+        })
+    }
 }
 
 var loading = {}

@@ -907,3 +907,4 @@ function set_cookie(cookie, value)
     document.cookie = cookie+'='+encodeURIComponent(value)+';SameSite=None;Secure;expires='+expir.toUTCString()
 }
 
+api_load(load)
